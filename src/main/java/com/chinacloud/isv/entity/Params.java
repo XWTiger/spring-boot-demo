@@ -1,4 +1,4 @@
-package com.chinacloud.isv.domain;
+package com.chinacloud.isv.entity;
 
 public class Params {
 	

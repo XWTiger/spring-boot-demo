@@ -1,4 +1,4 @@
-package com.chinacloud.isv.domain.callbackparams;
+package com.chinacloud.isv.entity.callbackparams;
 
 import java.util.ArrayList;
 

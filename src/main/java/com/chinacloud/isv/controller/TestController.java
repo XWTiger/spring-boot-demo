@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.chinacloud.isv.domain.Creator;
-import com.chinacloud.isv.domain.Params;
+import com.chinacloud.isv.entity.Creator;
+import com.chinacloud.isv.entity.Params;
 import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
