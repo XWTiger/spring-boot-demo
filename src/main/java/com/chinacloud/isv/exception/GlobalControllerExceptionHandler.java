@@ -16,8 +16,14 @@ public class GlobalControllerExceptionHandler {
 	@ExceptionHandler(IllegalArgumentException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public @ResponseBody ErrorMessage handleException(Exception e){
-		System.out.println("--------what ?---------");
 		logger.info(e.getMessage(),e);
 		return new ErrorMessage(e.getLocalizedMessage());	
+	}
+	
+	@ExceptionHandler(Exception.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public @ResponseBody ErrorMessage handleAllException(Exception e){
+		logger.info(e.getMessage(),e);
+		return new ErrorMessage(e.getLocalizedMessage());
 	}
 }

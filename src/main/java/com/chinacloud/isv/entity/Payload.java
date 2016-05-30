@@ -4,7 +4,15 @@ public class Payload {
 
 	private Tenant tenant;
 	private Order order;
+	private Instance instance;
 	
+	
+	public Instance getInstance() {
+		return instance;
+	}
+	public void setInstance(Instance instance) {
+		this.instance = instance;
+	}
 	public Tenant getTenant() {
 		return tenant;
 	}

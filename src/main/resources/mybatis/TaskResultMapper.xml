@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinacloud.isv.persistance.TaskResultDao">
+    <insert id="addResult">
+    insert into TaskResult(id,cFarmId,requestMethod,params,resultStatus,errorInfo,addTime,requestUrl)
+    values(#{id},#{cFarmId},#{requestMethod},#{params},#{resultStatus},#{errorInfo},now(),#{requestUrl})
+    </insert>
+    
+    <select id="getOrderTaskResultById">
+    select * from TaskResult where id=#{id} and cFarmId != null
+    </select>
+    
+    <select id="getCount" resultType="Integer" >
+    select count(*) from TaskResult
+    </select>
+    
+    <delete id="deleteResult">
+    delete from TaskResult where TO_DAYS(now())-TO_DAYS(addTime)>#{num}
+    </delete>
+
+</mapper>

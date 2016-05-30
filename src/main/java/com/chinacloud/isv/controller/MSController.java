@@ -5,23 +5,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.chinacloud.isv.domain.RiskStack;
-import com.chinacloud.isv.persistance.RiskStackDao;
+import com.chinacloud.isv.service.MirRequestService;
 
 @RestController
 public class MSController {
+
 	@Autowired
-	private RiskStackDao riskStackDao;
-	
+	MirRequestService mirRequestService;
 	@RequestMapping("/event_request")
-	public void eventRequest(@RequestParam String url){
-		RiskStack rStack = new RiskStack();
-		rStack.setRequestUrl("www.baidu.com");
-		rStack.setCallBackUrl("www.tiger.test");
-		rStack.setParams("{hello}");
-		rStack.setId("asdfadflkjl");
-		rStack.setRequestMethod("post");
-		riskStackDao.addRisk(rStack);
+	public String eventRequest(@RequestParam String url){
+		System.out.println("this is callback url ---->"+url);
+		return mirRequestService.sendRequest(url);
 	}
 
 }

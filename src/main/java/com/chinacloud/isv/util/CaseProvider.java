@@ -1,0 +1,12 @@
+package com.chinacloud.isv.util;
+
+public class CaseProvider {
+
+	public static final String EVENT_TYPE_SUBSCRIPTION_ORDER = "SUBSCRIPTION_ORDER";
+	public static final String EVENT_TYPE_SUBSCRIPTION_CANCEL = "SUBSCRIPTION_CANCEL";
+	public static final String EVENT_TYPE_SUBSCRIPTION_ACTIVE = "SUBSCRIPTION_ACTIVE";
+	public static final String EVENT_TYPE_SUBSCRIPTION_SUSPEND = "SUBSCRIPTION_SUSPEND";
+	public static final String EVENT_TYPE_SUBSCRIPTION_QUERY = "SUBSCRIPTION_QUERY";
+	public static final String EVENT_TYPE_WAIT_FOR_RESULT = "WAIT_FOR_RESULT";
+	public static final String EVENT_TYPE_WAIT_FOR_RESULT_MESSAGE = "正在处理中";
+}

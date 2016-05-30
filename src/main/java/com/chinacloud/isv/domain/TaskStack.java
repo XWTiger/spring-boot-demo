@@ -1,6 +1,6 @@
 package com.chinacloud.isv.domain;
 
-public class RiskStack {
+public class TaskStack {
 
 	private String id;
 	private String requestUrl;
@@ -8,8 +8,22 @@ public class RiskStack {
 	private String params;
 	private String callBackUrl;
 	private String addTime;
+	private int lockTask;
+	private int farmId;
 	
 	
+	public int getLock() {
+		return lockTask;
+	}
+	public void setLock(int lock) {
+		this.lockTask = lock;
+	}
+	public int getFarmId() {
+		return farmId;
+	}
+	public void setFarmId(int farmId) {
+		this.farmId = farmId;
+	}
 	public String getAddTime() {
 		return addTime;
 	}

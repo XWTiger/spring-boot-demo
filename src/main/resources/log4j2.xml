@@ -1,55 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="trace" strict="true" name="Log4j2Config">
-  <!--  <Appenders>
+   
+  <appenders>
+        <console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+        </console>
 
-        <Console name="STDOUT" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level - %msg%n" />
-        </Console>
+        <RollingFile name="RollingFileInfo" fileName="${sys:user.home}/logs/hpaasvc/info.log"
+                     filePattern="${sys:user.home}/logs/hpaasvc/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log">
+            <Filters>
+                <ThresholdFilter level="INFO"/>
+                <ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingFile>
 
-        <File name="infoFileLog" fileName="D:/var/log/info/info.log">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level - %msg%n" />
-        </File>
+        <RollingFile name="RollingFileWarn" fileName="${sys:user.home}/logs/hpaasvc/warn.log"
+                     filePattern="${sys:user.home}/logs/hpaasvc/$${date:yyyy-MM}/warn-%d{yyyy-MM-dd}-%i.log">
+            <Filters>
+                <ThresholdFilter level="WARN"/>
+                <ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingFile>
 
-        <File name="analyticFileLog" fileName="D:/var/log/analytic/analytic.log">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level - %msg%n" />
-        </File>
+        <RollingFile name="RollingFileError" fileName="${sys:user.home}/logs/hpaasvc/error.log"
+                     filePattern="${sys:user.home}/logs/hpaasvc/$${date:yyyy-MM}/error-%d{yyyy-MM-dd}-%i.log">
+            <ThresholdFilter level="ERROR"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingFile>
 
-    </Appenders>
+    </appenders>
 
-
-    <Loggers>
-
-        <logger name="infoLogger" level="INFO">
-            <AppenderRef ref="infoFileLog" />
+    <loggers>
+        <!--过滤掉spring和hibernate的一些无用的debug信息-->
+        <logger name="org.springframework" level="INFO">
         </logger>
-
-        <logger name="analyticLogger" level="DEBUG">
-            <AppenderRef ref="analyticFileLog" />
-        </logger>
-
-        <Root level="ERROR">
-            <AppenderRef ref="STDOUT" />
-        </Root>
-
-    </Loggers> -->
-    
-     <Properties>
-        <Property name="PID">????</Property>
-        <Property name="LOG_PATTERN">%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{faint} %clr{%5p} %clr{${sys:PID}}{magenta} %clr{---}{faint} %clr{[%15.15t]}{faint} %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n%wEx</Property>
-    </Properties>
-    <Appenders>
-        <Console name="Console" target="SYSTEM_OUT" follow="true">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-        </Console>
-        <File name="file" fileName="E:\\logs\/log-${date:yyyy-MM-dd-HH-mm-ss-SSS}.log" append="true">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-        </File>
-    </Appenders>
-    <Loggers>
-        
-        <Root level="info">
-            <AppenderRef ref="Console"/>
-           <!--  <AppenderRef ref="file"/> -->
-        </Root>
-    </Loggers>
+        <root level="all">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="RollingFileInfo"/>
+            <appender-ref ref="RollingFileWarn"/>
+            <appender-ref ref="RollingFileError"/>
+        </root>
+    </loggers>
+  
 </Configuration>
