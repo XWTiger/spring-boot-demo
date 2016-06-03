@@ -1,15 +1,13 @@
 package com.chinacloud.isv.service;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +25,8 @@ import com.chinacloud.isv.util.CaseProvider;
 import com.chinacloud.isv.util.MSUtil;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class TaskConsumeService {
@@ -60,29 +60,32 @@ public class TaskConsumeService {
 					String result = null;
 					switch (params.getData().getType()) {
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER:{
+							int cfarmId = 0;
 							//request mir server
 							try {
-								result = mirFactory.orderService(210, taskStack);
+								result = mirFactory.orderService(taskStack.getFarmId(), taskStack);
+								/*ObjectMapper mapper = new ObjectMapper();
+								JsonNode node = mapper.readTree(result);
+								JsonNode rNode = node.get("process");
+								rNode = rNode.get("attribute");
+								if(rNode.isArray()){
+									for (JsonNode jsonNode : rNode) {
+										if(jsonNode.get("key").toString().equals("farmId")){
+											cfarmId = jsonNode.get("value").asInt();
+										};
+									}
+								}*/
 								logger.info("call back params---->"+result);
-								System.out.println("call back params---->"+result);
 								Map<String,String> map = new HashMap<String,String >();
 								map.put("Content-Type", "application/json");
 								System.out.println(params.getData().getCallBackUrl());
 								CloseableHttpResponse response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), result);
 								HttpEntity entity = response.getEntity();
-								InputStream iStream = entity.getContent();
-								BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
-								StringBuilder sb = new StringBuilder();   
-						        String line = null;
-						        while ((line = br.readLine()) != null) {   
-					                sb.append(line);   
-					            }   
-								logger.info("response entity content--->"+sb.toString());
-								System.out.println("response entity content--->"+sb.toString());
+								logger.info("response entity content--->"+EntityUtils.toString(entity));
 								response.close();
 								taskResult.setResultStatus("SUCCESS");
 							} catch (Exception e) {
-								logger.info("Consume task error\n"+e.getMessage());
+								logger.error("Consume task error\n"+e.getMessage());
 								taskResult.setResultStatus("FAILED");
 								taskResult.setErrorInfo(e.getLocalizedMessage());
 								e.printStackTrace();

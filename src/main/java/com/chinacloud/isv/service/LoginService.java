@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.message.BasicNameValuePair;
@@ -34,7 +35,7 @@ public class LoginService {
 	private static final Logger logger = LogManager.getLogger(LoginService.class);
 	
 	  public ResultObject login(String username, String password){
-		  	if(times < configuration.getReLoginTimes() && null != rObject && !rObject.getErrorMessage().equals("")){
+		  	if(times < configuration.getReLoginTimes() && null != rObject && rObject.getErrorMessage().equals("")){
 		  		times++;
 		  		return rObject;
 		  	}
@@ -53,9 +54,11 @@ public class LoginService {
 	            data.add(new BasicNameValuePair("scalrCaptchaChallenge", ""));
 	            data.add(new BasicNameValuePair("userTimezone", "-480"));
 	            resp = (CloseableHttpResponse) MSUtil.httpClientPostUrl(headers, url, data);
+	            Header[] secureKey = resp.getHeaders("X-Secure-Key");
 	            String strRet = EntityUtils.toString(resp.getEntity());
 	            WhiteholeFactory whiteholeFactory = new WhiteholeFactory();
 	            rObject = whiteholeFactory.getEntity(ResultObject.class, strRet);
+	            rObject.setSecureKey(secureKey[0].getValue());
 	            System.out.println("login --->strRet:"+strRet);
 	        } catch ( Exception e) {
 	           /* ret.setMessage("登录出现异常, " + e.getMessage());*/

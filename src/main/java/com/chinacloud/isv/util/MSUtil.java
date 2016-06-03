@@ -7,6 +7,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -84,7 +85,11 @@ public class MSUtil {
 	        return httpClient.execute(httpPost);
 	    }
 
-
+	 /**
+	  * get the case chinese name by case type
+	  * @param caseName
+	  * @return name
+	  */
 	 public static String getChineseName(String caseName){
 		 String cName = null;
 		 for (String[] strings : listEvent) {
@@ -95,4 +100,29 @@ public class MSUtil {
 		 return cName;
 	 }
 
+	 public static String getFarmNameFromResult(String resultMsg){
+		 String sp[] = resultMsg.split("'");
+		 return sp[1];
+	 }
+	 
+	 public static CloseableHttpResponse httpClientGetUrl(Map<String, String> headers, String url) throws  Exception{
+		 HttpClientBuilder hcBuilder = HttpClients.custom();
+	        hcBuilder.setRedirectStrategy(new LaxRedirectStrategy());
+	        CloseableHttpClient httpClient = hcBuilder.build();
+	        HttpGet httpGet = new HttpGet(url);
+	        for(Map.Entry<String, String> entry: headers.entrySet()) {
+	        	httpGet.addHeader(entry.getKey(), entry.getValue());
+	        }
+	        RequestConfig requestConfig = RequestConfig.custom()
+	                //设置连接超时时间
+	                .setConnectTimeout(30000)
+	                        //设置从connect Manager获取Connection 超时时间
+	                .setConnectionRequestTimeout(30000)
+	                        //请求获取数据的超时时间
+	                .setSocketTimeout(30000)
+	                .build();
+	        httpGet.setConfig(requestConfig);
+	        return httpClient.execute(httpGet);
+	 }
+	
 }

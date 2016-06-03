@@ -6,6 +6,8 @@ public class ResultObject {
 	private String userId;
 	private String specialToken;
 	private String errorMessage = "";
+	private String successMessage = "";
+	private String secureKey = "";
 	
 	public boolean isSuccess() {
 		return success;
@@ -31,5 +33,16 @@ public class ResultObject {
 	public void setErrorMessage(String errorMessage) {
 		this.errorMessage = errorMessage;
 	}
-	
+	public String getSuccessMessage() {
+		return successMessage;
+	}
+	public void setSuccessMessage(String successMessage) {
+		this.successMessage = successMessage;
+	}
+	public String getSecureKey() {
+		return secureKey;
+	}
+	public void setSecureKey(String secureKey) {
+		this.secureKey = secureKey;
+	}
 }

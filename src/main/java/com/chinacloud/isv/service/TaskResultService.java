@@ -24,7 +24,7 @@ public class TaskResultService {
 	@Value("${service.deleteTime}")
 	private int Time;
 	
-	@Scheduled(fixedRate = 5000)
+	@Scheduled(fixedRate = 50000)
 	private void manageTaskResult(){
 		
 		System.out.println("manage result --->"+taskResultNumber);
