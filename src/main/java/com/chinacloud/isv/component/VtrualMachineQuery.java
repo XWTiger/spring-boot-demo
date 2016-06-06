@@ -1,6 +1,7 @@
 package com.chinacloud.isv.component;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -21,18 +22,35 @@ public class VtrualMachineQuery extends Thread{
 	public void run() {
 		super.run();
 		while(true){
-			logger.debug("=================");
+			logger.debug("=========begin a task query========");
+			logger.debug("queue size:"+queryList.size());
+			logger.debug("------------------------------------");
 			try {
 				Thread.currentThread();
 				Thread.sleep(3000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			logger.debug("================end================");
 		}
 	}
 
 	public synchronized void addQueryTask(VMQeuryParam vmQeuryParam){
 		queryList.add(vmQeuryParam);
+	}
+	
+	public void removeQueryTask(VMQeuryParam vp){
+		queryList.remove(vp);
+	}
+	
+	private VMQeuryParam getQueryTask(){
+		Iterator<VMQeuryParam> its = queryList.iterator();
+		if(its.hasNext()){
+			VMQeuryParam vp = its.next();
+			return vp;
+		}else{
+			return null;
+		}
 	}
 	
 	@Override

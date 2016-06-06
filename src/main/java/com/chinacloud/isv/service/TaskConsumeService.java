@@ -14,9 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.chinacloud.isv.component.VtrualMachineQuery;
 import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.domain.TaskStack;
 import com.chinacloud.isv.entity.Params;
+import com.chinacloud.isv.entity.VMQeuryParam;
 import com.chinacloud.isv.factory.MirFactory;
 import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.persistance.TaskResultDao;
@@ -25,8 +27,6 @@ import com.chinacloud.isv.util.CaseProvider;
 import com.chinacloud.isv.util.MSUtil;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class TaskConsumeService {
@@ -37,7 +37,8 @@ public class TaskConsumeService {
 	TaskResultDao taskResultDao;
 	@Autowired
 	MirFactory mirFactory;
-	
+	@Autowired
+	VtrualMachineQuery vtrualMachineQuery;
 	
 	@Scheduled(fixedRate = 1000)
 	public void riskRunning(){
@@ -57,13 +58,36 @@ public class TaskConsumeService {
 				try {
 					Params params = whiteholeFactory.getEntity(Params.class, taskStack.getParams());
 					TaskResult taskResult = new TaskResult();
+					
 					String result = null;
 					switch (params.getData().getType()) {
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER:{
-							int cfarmId = 0;
+							VMQeuryParam vParam = new VMQeuryParam();
 							//request mir server
 							try {
-								result = mirFactory.orderService(taskStack.getFarmId(), taskStack);
+								result = mirFactory.orderService(taskStack.getFarmId(), taskStack,vParam);
+								if(result.contains("Farm successfully launched")){//TODO maybe update.
+									vParam.setCallbackUrl(params.getData().getCallBackUrl());
+									vtrualMachineQuery.addQueryTask(vParam);
+									vtrualMachineQuery.start();
+								}else{
+									logger.info("call back params---->"+result);
+									Map<String,String> map = new HashMap<String,String >();
+									map.put("Content-Type", "application/json");
+									System.out.println(params.getData().getCallBackUrl());
+									CloseableHttpResponse response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), result);
+									HttpEntity entity = response.getEntity();
+									logger.info("response entity content--->"+EntityUtils.toString(entity));
+									response.close();
+									taskResult.setResultStatus("SUCCESS");
+									//add result
+									taskResult.setId(taskStack.getId());
+									taskResult.setRequestMethod(taskStack.getRequestMethod());
+									taskResult.setParams(result);
+									taskResult.setRequestUrl(taskStack.getCallBackUrl());
+									//TODO delete the row record of task 
+									taskResultDao.addResult(taskResult);
+								}
 								/*ObjectMapper mapper = new ObjectMapper();
 								JsonNode node = mapper.readTree(result);
 								JsonNode rNode = node.get("process");
@@ -75,30 +99,19 @@ public class TaskConsumeService {
 										};
 									}
 								}*/
-								logger.info("call back params---->"+result);
-								Map<String,String> map = new HashMap<String,String >();
-								map.put("Content-Type", "application/json");
-								System.out.println(params.getData().getCallBackUrl());
-								CloseableHttpResponse response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), result);
-								HttpEntity entity = response.getEntity();
-								logger.info("response entity content--->"+EntityUtils.toString(entity));
-								response.close();
-								taskResult.setResultStatus("SUCCESS");
 							} catch (Exception e) {
 								logger.error("Consume task error\n"+e.getMessage());
 								taskResult.setResultStatus("FAILED");
 								taskResult.setErrorInfo(e.getLocalizedMessage());
+								//add result
+								taskResult.setId(taskStack.getId());
+								taskResult.setRequestMethod(taskStack.getRequestMethod());
+								taskResult.setParams(result);
+								taskResult.setRequestUrl(taskStack.getCallBackUrl());
+								//delete the row record of task 
+								taskResultDao.addResult(taskResult);
 								e.printStackTrace();
 							}
-							//add result
-							taskResult.setId(taskStack.getId());
-							taskResult.setcFarmId(201);
-							taskResult.setRequestMethod(taskStack.getRequestMethod());
-							taskResult.setParams(result);
-							taskResult.setRequestUrl(taskStack.getCallBackUrl());
-							//delete the row record of task 
-							taskResultDao.addResult(taskResult);
-							
 							break;
 						}
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL:{

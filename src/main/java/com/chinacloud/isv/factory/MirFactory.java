@@ -2,6 +2,7 @@ package com.chinacloud.isv.factory;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.domain.TaskStack;
 import com.chinacloud.isv.entity.Params;
 import com.chinacloud.isv.entity.ResultObject;
+import com.chinacloud.isv.entity.VMQeuryParam;
 import com.chinacloud.isv.entity.callbackparams.Attribute;
 import com.chinacloud.isv.entity.callbackparams.Data;
 import com.chinacloud.isv.entity.callbackparams.Process;
@@ -38,17 +40,16 @@ public class MirFactory {
 	
 	private static final Logger logger = LogManager.getLogger(MirFactory.class);
 	
-	public String orderService(int farmId,TaskStack taskStack) throws Exception{
+	public String orderService(int farmId,TaskStack taskStack,VMQeuryParam vp) throws Exception{
 		Data data = new Data();
 		Process process = new Process();
+		String startResult;
 		ResultObject robj= loginService.login("xiaweihu@chinacloud.com.cn", "!@#$QWERasdfzxcv*&POIUjklmbn");
 		WhiteholeFactory wFactory = new WhiteholeFactory();
 		Params params = wFactory.getEntity(Params.class, taskStack.getParams());
 		
 		//do mir request
-		if(robj.isSuccess()){
-			System.out.println("special key--->"+robj.getSpecialToken());
-		}
+		logger.info("=====================申请事件,事件ID: "+params.getData().getEventId()+" ====================");
 		
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
 			data.setSuccess(false);
@@ -96,7 +97,10 @@ public class MirFactory {
 					}
 				}
 			}
-			
+			vp.setcFarmId(Integer.parseInt(cloneFarmId));
+			vp.setRoles(Integer.parseInt(roles));
+			vp.setBeginTime(new Date().getTime());
+			vp.setTaskId(taskStack.getId());
 			logger.info("the farm Info===>"+farmInfo);
 			response.close();
 		}else{
@@ -133,8 +137,9 @@ public class MirFactory {
 		List<NameValuePair> params_list_2 = new ArrayList<NameValuePair>();
 		params_list_2.add(new BasicNameValuePair("farmId",cloneFarmId));
 		CloseableHttpResponse startFarm = MSUtil.httpClientPostUrl(headerMap, farmStartUrl, params_list_2);
-		String startResult = EntityUtils.toString(startFarm.getEntity());
+		startResult = EntityUtils.toString(startFarm.getEntity());
 		//do analyze by result
+		
 		logger.debug("the roles number--->"+roles);
 		startFarm.close();
 		
@@ -159,8 +164,7 @@ public class MirFactory {
 		process.setAttribute(att_list);
 		data.setProcess(process);*/
 		}
-		String result = WhiteholeFactory.getJsonString(data);
-		return result;
+		return startResult;
 	}
 	
 	public String suspendService(){

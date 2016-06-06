@@ -7,7 +7,7 @@ public class VMQeuryParam {
 	private int roles;
 	private String taskId;
 	private int cFarmId;
-	private int beginTime;
+	private long beginTime;
 	
 	public String getRequestUrl() {
 		return requestUrl;
@@ -39,10 +39,10 @@ public class VMQeuryParam {
 	public void setcFarmId(int cFarmId) {
 		this.cFarmId = cFarmId;
 	}
-	public int getBeginTime() {
+	public long getBeginTime() {
 		return beginTime;
 	}
-	public void setBeginTime(int beginTime) {
-		this.beginTime = beginTime;
+	public void setBeginTime(long l) {
+		this.beginTime = l;
 	}
 }
