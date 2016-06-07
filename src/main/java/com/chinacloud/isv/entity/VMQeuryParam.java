@@ -7,6 +7,9 @@ public class VMQeuryParam {
 	private int roles;
 	private String taskId;
 	private int cFarmId;
+	private String xSecurityKey;
+	private String specialToken;
+	private String enventId;
 	private long beginTime;
 	
 	public String getRequestUrl() {
@@ -45,4 +48,23 @@ public class VMQeuryParam {
 	public void setBeginTime(long l) {
 		this.beginTime = l;
 	}
+	public String getxSecurityKey() {
+		return xSecurityKey;
+	}
+	public void setxSecurityKey(String xSecurityKey) {
+		this.xSecurityKey = xSecurityKey;
+	}
+	public String getSpecialToken() {
+		return specialToken;
+	}
+	public void setSpecialToken(String specialToken) {
+		this.specialToken = specialToken;
+	}
+	public String getEnventId() {
+		return enventId;
+	}
+	public void setEnventId(String enventId) {
+		this.enventId = enventId;
+	}
+	
 }

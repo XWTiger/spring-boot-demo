@@ -15,6 +15,8 @@ public class Configuration {
 	private String mirConnectUrl;
 	@Value("${mir.reLoginTimes}")
 	private int reLoginTimes;
+	@Value("${mir.serverQueryOutTime}")
+	private int timeOut;
 
 	public String getMirConnectUrl() {
 		return mirConnectUrl;
@@ -31,6 +33,12 @@ public class Configuration {
 	public void setReLoginTimes(int reLoginTimes) {
 		this.reLoginTimes = reLoginTimes;
 	}
-	
-	
+
+	public int getTimeOut() {
+		return timeOut;
+	}
+
+	public void setTimeOut(int timeOut) {
+		this.timeOut = timeOut;
+	}
 }

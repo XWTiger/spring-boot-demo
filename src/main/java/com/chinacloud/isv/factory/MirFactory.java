@@ -39,7 +39,7 @@ public class MirFactory {
 	LoginService loginService;
 	
 	private static final Logger logger = LogManager.getLogger(MirFactory.class);
-	
+	//TODO every request Exception should be catch and return the result
 	public String orderService(int farmId,TaskStack taskStack,VMQeuryParam vp) throws Exception{
 		Data data = new Data();
 		Process process = new Process();
@@ -47,10 +47,8 @@ public class MirFactory {
 		ResultObject robj= loginService.login("xiaweihu@chinacloud.com.cn", "!@#$QWERasdfzxcv*&POIUjklmbn");
 		WhiteholeFactory wFactory = new WhiteholeFactory();
 		Params params = wFactory.getEntity(Params.class, taskStack.getParams());
-		
 		//do mir request
 		logger.info("=====================申请事件,事件ID: "+params.getData().getEventId()+" ====================");
-		
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
 			data.setSuccess(false);
 			data.setErrorCode("10001");
@@ -66,6 +64,8 @@ public class MirFactory {
 		Map<String,String> headerMap = new HashMap<String,String>();
 		headerMap.put("X-Secure-Key", robj.getSecureKey());
 		headerMap.put("X-Requested-Token", robj.getSpecialToken());
+		vp.setxSecurityKey(robj.getSecureKey());
+		vp.setSpecialToken(robj.getSpecialToken());
 		//request url
 		String farmCloneUrl = configuration.getMirConnectUrl()+"farms/xClone";
 		//service clone	
@@ -101,6 +101,7 @@ public class MirFactory {
 			vp.setRoles(Integer.parseInt(roles));
 			vp.setBeginTime(new Date().getTime());
 			vp.setTaskId(taskStack.getId());
+			vp.setEnventId(params.getData().getEventId());
 			logger.info("the farm Info===>"+farmInfo);
 			response.close();
 		}else{
@@ -139,30 +140,8 @@ public class MirFactory {
 		CloseableHttpResponse startFarm = MSUtil.httpClientPostUrl(headerMap, farmStartUrl, params_list_2);
 		startResult = EntityUtils.toString(startFarm.getEntity());
 		//do analyze by result
-		
 		logger.debug("the roles number--->"+roles);
 		startFarm.close();
-		
-		/*data.setSuccess(true);
-		data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)+"处理成功");
-		process.setEventId(params.getData().getEventId());
-		process.setStatus("SUCCESS");
-		process.setInstanceId(taskStack.getId());
-		ArrayList<Attribute> att_list = new ArrayList<Attribute>();
-		Attribute att = new Attribute();
-		att.setKey("cpu");
-		att.setValue("12");
-		Attribute att2 = new Attribute();
-		att2.setKey("ip");
-		att2.setValue("127.0.0.1");
-		Attribute att3 = new Attribute();
-		att3.setKey("farmId");
-		att3.setValue(cloneFarmId);
-		att_list.add(att3);
-		att_list.add(att);
-		att_list.add(att2);
-		process.setAttribute(att_list);
-		data.setProcess(process);*/
 		}
 		return startResult;
 	}

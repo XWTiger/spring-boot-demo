@@ -71,7 +71,7 @@ public class TaskConsumeService {
 									vtrualMachineQuery.addQueryTask(vParam);
 									vtrualMachineQuery.start();
 								}else{
-									logger.info("call back params---->"+result);
+									logger.info("order case, call back params---->"+result);
 									Map<String,String> map = new HashMap<String,String >();
 									map.put("Content-Type", "application/json");
 									System.out.println(params.getData().getCallBackUrl());
@@ -86,6 +86,7 @@ public class TaskConsumeService {
 									taskResult.setParams(result);
 									taskResult.setRequestUrl(taskStack.getCallBackUrl());
 									//TODO delete the row record of task 
+									//riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult);
 								}
 								/*ObjectMapper mapper = new ObjectMapper();
@@ -109,6 +110,7 @@ public class TaskConsumeService {
 								taskResult.setParams(result);
 								taskResult.setRequestUrl(taskStack.getCallBackUrl());
 								//delete the row record of task 
+								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 								e.printStackTrace();
 							}
@@ -145,6 +147,7 @@ public class TaskConsumeService {
 					logger.error("when consume task ,json IOException\n"+e.getMessage());
 					e.printStackTrace();
 				}
+				
 			}
 		}
 	}
