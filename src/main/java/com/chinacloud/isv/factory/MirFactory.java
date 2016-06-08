@@ -71,11 +71,11 @@ public class MirFactory {
 		//service clone	
 		List<NameValuePair> params_list = new ArrayList<NameValuePair>();
 		params_list.add(new BasicNameValuePair("farmId",String.valueOf(farmId)));
-		/*CloseableHttpResponse chr = MSUtil.httpClientPostUrl(headerMap, farmCloneUrl, params_list);
-		String CloneResult = EntityUtils.toString(chr.getEntity());*/
+		CloseableHttpResponse chr = MSUtil.httpClientPostUrl(headerMap, farmCloneUrl, params_list);
+		String CloneResult = EntityUtils.toString(chr.getEntity());
 		//do analyze by result
 		String cloneR = "{\"success\":true,\"successMessage\":\"Farm successfully cloned. New farm: 'mir-pack-deploy-test (clone #4)'\"}";
-		ResultObject resultObject = wFactory.getEntity(ResultObject.class, cloneR);
+		ResultObject resultObject = wFactory.getEntity(ResultObject.class, CloneResult);
 		String cloneFarmId = null;
 		String roles = null;
 		//get the clone farm info

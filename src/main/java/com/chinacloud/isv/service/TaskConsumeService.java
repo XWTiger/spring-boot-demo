@@ -70,7 +70,7 @@ public class TaskConsumeService {
 									vParam.setCallbackUrl(params.getData().getCallBackUrl());
 									vtrualMachineQuery.addQueryTask(vParam);
 									vtrualMachineQuery.start();
-								}else{
+								}else{// call back return result
 									logger.info("order case, call back params---->"+result);
 									Map<String,String> map = new HashMap<String,String >();
 									map.put("Content-Type", "application/json");

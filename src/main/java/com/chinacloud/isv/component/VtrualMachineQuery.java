@@ -62,9 +62,8 @@ public class VtrualMachineQuery extends Thread{
 			logger.debug("queue size:"+queryList.size());
 			logger.debug("------------------------------------");
 			try {
-				Iterator<VMQeuryParam> its = queryList.iterator();
-				while(its.hasNext()){
-					VMQeuryParam vp = its.next();
+				ArrayList<VMQeuryParam> task_list = getQueryTaskLine();
+				for (VMQeuryParam vp : task_list){
 					//create url
 					String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+vp.getcFarmId()+"&imageId=&limit=10&page=1&query=&start=0";
 					Map<String,String> headerMap = new HashMap<String,String>();
@@ -80,6 +79,7 @@ public class VtrualMachineQuery extends Thread{
 						ArrayList<ServerInfo> sList = server.getData();
 						//do analyze
 						int total = Integer.parseInt(server.getTotal());
+						logger.debug("total : "+total+"\n roles : "+vp.getRoles());
 						if(total >= vp.getRoles()){
 							String [] nameList = new String[total];
 							int number = 0;
@@ -99,8 +99,18 @@ public class VtrualMachineQuery extends Thread{
 									}
 								}
 							}
+							logger.debug("repeat name number : "+number);
 							logger.debug("real number: "+(total - number));
 							if((total - number) == vp.getRoles()){
+								int flag = 0;
+								for (ServerInfo serverInfo : sList) {
+									if(!serverInfo.getStatus().equals("Running")){
+										flag++;
+										break;
+									}
+								}
+								if(flag > 0)
+									continue;
 								data.setSuccess(true);
 								data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)+"处理成功");
 								process.setEventId(vp.getEnventId());
@@ -159,11 +169,15 @@ public class VtrualMachineQuery extends Thread{
 						e.printStackTrace();
 					}finally{
 						try {
+							String result = null;
 							if(null != data.getProcess()){
-								String result = WhiteholeFactory.getJsonString(data);
+								Map<String,String> map = new HashMap<String,String >();
+								map.put("Content-Type", "application/json");
+								result = WhiteholeFactory.getJsonString(data);
 								CloseableHttpResponse response = null;
+								logger.info("call back return result: "+result);
 								try {
-									response = MSUtil.httpClientPostUrl(headerMap,vp.getCallbackUrl(), result);
+									response = MSUtil.httpClientPostUrl(map,vp.getCallbackUrl(), result);
 								} catch (Exception e) {
 									TaskResult taskResult = new TaskResult();
 									taskResult.setResultStatus("FAILED");
@@ -179,10 +193,10 @@ public class VtrualMachineQuery extends Thread{
 									e.printStackTrace();
 								}
 								HttpEntity entity = response.getEntity();
-								
+								String respCall = null;
 								try {
+									respCall = EntityUtils.toString(entity);
 									logger.info("response entity content--->"+EntityUtils.toString(entity));
-									response.close();
 								} catch (ParseException e) {
 									e.printStackTrace();
 								} catch (IOException e) {
@@ -194,10 +208,17 @@ public class VtrualMachineQuery extends Thread{
 								taskResult.setId(vp.getTaskId());
 								taskResult.setRequestMethod("POST");
 								taskResult.setParams(result);
+								taskResult.setErrorInfo(respCall);
+								taskResult.setcFarmId(vp.getcFarmId());
 								taskResult.setRequestUrl(vp.getCallbackUrl());
 								//TODO delete the row record of task 
 								//riskStackDao.deleteTask(vp.getTaskId());
 								taskResultDao.addResult(taskResult);
+								try {
+									response.close();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
 							}
 						} catch (JsonProcessingException e) {
 							logger.error("convert result to json failed");
@@ -207,7 +228,7 @@ public class VtrualMachineQuery extends Thread{
 					}
 				}
 				logger.debug("================end query================");
-				logger.debug("\n");
+				System.out.println("\n");
 				Thread.currentThread();
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -224,26 +245,26 @@ public class VtrualMachineQuery extends Thread{
 	}
 	
 	public void removeQueryTask(VMQeuryParam vp){
-		logger.debug("time out remove node id:"+vp.getTaskId());
 		queryList.remove(vp);
 	}
 	
-	@SuppressWarnings("unused")
-	private VMQeuryParam getQueryTask(){
+	
+	private ArrayList<VMQeuryParam> getQueryTaskLine(){
+		ArrayList<VMQeuryParam> taskList = new ArrayList<VMQeuryParam>();
 		Iterator<VMQeuryParam> its = queryList.iterator();
-		if(its.hasNext()){
-			VMQeuryParam vp = its.next();
-			return vp;
-		}else{
-			return null;
+		while(its.hasNext()){
+			taskList.add(its.next());
 		}
+		return taskList;
 	}
 	
 	private boolean timeOutCheck(VMQeuryParam vmQeuryParam){
 		boolean b = false;
 		long time = new Date().getTime() - vmQeuryParam.getBeginTime();
+		logger.debug("the time------>"+configuration.getTimeOut());
 		if(time > configuration.getTimeOut()*60000){
 			b = true;
+			logger.debug("time out remove node id:"+vmQeuryParam.getTaskId());
 		}
 		return b;
 	}
