@@ -35,9 +35,13 @@ public class LoginService {
 	private static final Logger logger = LogManager.getLogger(LoginService.class);
 	
 	  public ResultObject login(String username, String password){
-		  	if(times < configuration.getReLoginTimes() && null != rObject && rObject.getErrorMessage().equals("")){
-		  		times++;
-		  		return rObject;
+		  	if(null == username || null == password ){
+		  		username = configuration.getUserName();
+		  		password = configuration.getPassword();
+		  		if(times < configuration.getReLoginTimes() && null != rObject && rObject.getErrorMessage().equals("")){
+			  		times++;
+			  		return rObject;
+			  	}
 		  	}
 		  	System.out.println("=========begin login mir==========");
 	        CloseableHttpResponse resp = null;

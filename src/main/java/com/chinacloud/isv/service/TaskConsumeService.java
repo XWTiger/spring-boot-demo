@@ -2,6 +2,7 @@ package com.chinacloud.isv.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,7 +85,9 @@ public class TaskConsumeService {
 									taskResult.setId(taskStack.getId());
 									taskResult.setRequestMethod(taskStack.getRequestMethod());
 									taskResult.setParams(result);
+									taskResult.setErrorInfo(EntityUtils.toString(entity));
 									taskResult.setRequestUrl(taskStack.getCallBackUrl());
+									taskResult.setErrorInfo(EntityUtils.toString(entity));
 									//TODO delete the row record of task 
 									//riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult);
@@ -109,6 +112,7 @@ public class TaskConsumeService {
 								taskResult.setRequestMethod(taskStack.getRequestMethod());
 								taskResult.setParams(result);
 								taskResult.setRequestUrl(taskStack.getCallBackUrl());
+								taskResult.setErrorInfo("call back return result failed:"+e.getMessage());
 								//delete the row record of task 
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
@@ -117,7 +121,62 @@ public class TaskConsumeService {
 							break;
 						}
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL:{
-							mirFactory.cancleService(210);
+							String instanceId = params.getData().getPayload().getInstance().getInstanceId();
+							VMQeuryParam vmQeuryParam = new VMQeuryParam();
+							CloseableHttpResponse response = null;
+							logger.debug("CANCEL　CASE: the instance id---->"+instanceId);
+							TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
+							if(null == tr){
+								logger.error("when do cancle case,get clone farm id failed because of database return null");
+							}
+							result = mirFactory.cancleService(params,tr.getcFarmId(),vmQeuryParam);
+							logger.info("cancle case, call back params---->"+result);
+							if(result.contains("SSH key(s) successfully removed")){//TODO maybe update.
+								vmQeuryParam.setcFarmId(tr.getcFarmId());
+								vmQeuryParam.setType(1);
+								vmQeuryParam.setEnventId(params.getData().getEventId());
+								vmQeuryParam.setCallbackUrl(params.getData().getCallBackUrl());
+								vmQeuryParam.setTaskId(taskStack.getId());
+								vmQeuryParam.setBeginTime(new Date().getTime());
+								vtrualMachineQuery.addQueryTask(vmQeuryParam);
+								vtrualMachineQuery.start();
+							}else{
+								Map<String,String> map = new HashMap<String,String >();
+								map.put("Content-Type", "application/json");
+								System.out.println(params.getData().getCallBackUrl());
+								try {
+								response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), result);
+								HttpEntity entity = response.getEntity();
+								String comebackResult = EntityUtils.toString(entity);
+								logger.info("response entity content--->"+comebackResult);
+								taskResult.setResultStatus("SUCCESS");
+								//add result
+								taskResult.setId(taskStack.getId());
+								taskResult.setRequestMethod(taskStack.getRequestMethod());
+								taskResult.setParams(result);
+								taskResult.setErrorInfo(comebackResult);
+								taskResult.setRequestUrl(taskStack.getCallBackUrl());
+								//TODO delete the row record of task and the order case result
+								//riskStackDao.deleteTask(taskStack.getId());
+								//taskResultDao.deleteResultById(instanceId);
+								//taskResultDao.addResult(taskResult);
+								} catch (Exception e) {
+									logger.error("Consume task error\n"+e.getMessage());
+									taskResult.setResultStatus("FAILED");
+									taskResult.setErrorInfo(e.getLocalizedMessage());
+									//add result
+									taskResult.setId(taskStack.getId());
+									taskResult.setRequestMethod(taskStack.getRequestMethod());
+									taskResult.setParams(result);
+									taskResult.setRequestUrl(taskStack.getCallBackUrl());
+									taskResult.setErrorInfo("call back return result failed:"+e.getMessage());
+									//TODO delete the row record of task 
+									//riskStackDao.deleteTask(taskStack.getId());
+									//taskResultDao.addResult(taskResult);
+									e.printStackTrace();
+								}
+								response.close();
+							}
 							break;
 						}
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND:{

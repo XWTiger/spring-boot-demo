@@ -17,6 +17,26 @@ public class Configuration {
 	private int reLoginTimes;
 	@Value("${mir.serverQueryOutTime}")
 	private int timeOut;
+	@Value("${mir.userName}")
+	private String userName;
+	@Value("${mir.password}")
+	private String password;
+	
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
 	public String getMirConnectUrl() {
 		return mirConnectUrl;

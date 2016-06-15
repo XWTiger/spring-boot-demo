@@ -11,7 +11,21 @@ public class VMQeuryParam {
 	private String specialToken;
 	private String enventId;
 	private long beginTime;
+	private int type = 0;
+	private String instanceId;
 	
+	public String getInstanceId() {
+		return instanceId;
+	}
+	public void setInstanceId(String instanceId) {
+		this.instanceId = instanceId;
+	}
+	public int getType() {
+		return type;
+	}
+	public void setType(int type) {
+		this.type = type;
+	}
 	public String getRequestUrl() {
 		return requestUrl;
 	}

@@ -30,6 +30,8 @@ import com.chinacloud.isv.service.LoginService;
 import com.chinacloud.isv.util.CaseProvider;
 import com.chinacloud.isv.util.MSUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 @Component
 public class MirFactory {
 
@@ -147,12 +149,117 @@ public class MirFactory {
 	}
 	
 	public String suspendService(){
-		return "";
+		String result = null;
+		
+		return result;
 	}
 	
-	public String cancleService(int farmId){
+	public String cancleService(Params p,int cFarmId,VMQeuryParam vp){
+		String result = null;
+		Data data = new Data();
+		Process process = new Process();
+		WhiteholeFactory wFactory = new WhiteholeFactory();
+		logger.debug("=====================注销事件 farmId:"+cFarmId+"====================");
+		//create mir request url
+		String listSSHkeyUrl = configuration.getMirConnectUrl()+"sshkeys/xListSshKeys?farmId="+cFarmId+"&page=1&start=0";
+		String terminateFarmUrl = configuration.getMirConnectUrl()+"farms/xTerminate";
+		String removeSSHKeyUrl = configuration.getMirConnectUrl()+"sshkeys/xRemove";
+		ResultObject robj= loginService.login(null,null);
+		Map<String,String> headerMap = new HashMap<String,String>();
+		headerMap.put("X-Secure-Key", robj.getSecureKey());
+		headerMap.put("X-Requested-Token", robj.getSpecialToken());
+		vp.setxSecurityKey(robj.getSecureKey());
+		vp.setSpecialToken(robj.getSpecialToken());
+		//request mir
+			//query ssh key id 
+		String sshKeyId = null;
+		try {
+			CloseableHttpResponse response = MSUtil.httpClientGetUrl(headerMap, listSSHkeyUrl);
+			String list = EntityUtils.toString(response.getEntity());
+			ObjectMapper mapper = new ObjectMapper();
+			logger.debug("the ssh list :"+list);
+			JsonNode node = mapper.readTree(list);
+			JsonNode rNode = node.get("data");
+			if(rNode.isArray()){
+				for (JsonNode jsonNode : rNode) {
+					logger.debug("ssk's farm id :"+jsonNode.get("farm_id").toString());
+					logger.debug("get the ssk id----->"+jsonNode.get("id").toString());
+					logger.debug("the cFarmId--->"+cFarmId+","+String.valueOf(cFarmId));
+					if(jsonNode.get("farm_id").asInt() == cFarmId){
+						logger.debug("get the ssk id----->"+jsonNode.get("id").toString());
+						sshKeyId = jsonNode.get("id").toString();
+					};
+				}
+			}
+			response.close();
+			
+		} catch (Exception e1) {
+			logger.error("when do cancle case,get ssh key failed\n"+e1.getLocalizedMessage());
+			e1.printStackTrace();
+		}
+			//terminate farm;
+		if(null != sshKeyId){
+			try {
+				List<NameValuePair> params_list = new ArrayList<NameValuePair>();
+				params_list.add(new BasicNameValuePair("farmId",String.valueOf(cFarmId)));
+				CloseableHttpResponse response = MSUtil.httpClientPostUrl(headerMap, terminateFarmUrl, params_list);
+				String requestR = EntityUtils.toString(response.getEntity());
+				ResultObject ro= wFactory.getEntity(ResultObject.class, requestR);
+				if(!ro.isSuccess()){
+					logger.error("terminate farm failed");
+					data.setSuccess(false);
+					data.setErrorCode("10001");
+					data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是停止应用堆栈的失败。");
+					process.setEventId(p.getData().getEventId());
+					process.setStatus("FAILED");
+					data.setProcess(process);
+					String resultCancleCase = WhiteholeFactory.getJsonString(data);
+					return resultCancleCase;
+				}
+				response.close();
+			} catch (Exception e) {
+				logger.error("when do cancle case,request mir platform failed\n"+e.getLocalizedMessage());
+				e.printStackTrace();
+			}
+		}
+		//remove ssh key
+		try {
+			if(null == sshKeyId){
+				logger.error("the ssh key id is empty");
+				data.setSuccess(false);
+				data.setErrorCode("10001");
+				data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是获取应用堆栈的SSH KEY失败。");
+				process.setEventId(p.getData().getEventId());
+				process.setStatus("FAILED");
+				data.setProcess(process);
+				String resultCancleCase = WhiteholeFactory.getJsonString(data);
+				return resultCancleCase;
+			}
+			List<NameValuePair> params_list = new ArrayList<NameValuePair>();
+			params_list.add(new BasicNameValuePair("sshKeyId","[\""+sshKeyId+"\"]"));
+			CloseableHttpResponse response = MSUtil.httpClientPostUrl(headerMap, removeSSHKeyUrl, params_list);
+			String requestR = EntityUtils.toString(response.getEntity());
+			ResultObject ro= wFactory.getEntity(ResultObject.class, requestR);
+			if(!ro.isSuccess()){
+				logger.error("remove farm ssh key failed");
+				data.setSuccess(false);
+				data.setErrorCode("10001");
+				data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是删除应用堆栈SSH KEY 失败。");
+				process.setEventId(p.getData().getEventId());
+				process.setStatus("FAILED");
+				data.setProcess(process);
+				String resultCancleCase = WhiteholeFactory.getJsonString(data);
+				return resultCancleCase;
+			}
+			result = requestR;
+			response.close();
+		} catch (Exception e) {
+			logger.error("remove farm ssh key failed\n"+e.getLocalizedMessage());
+			e.printStackTrace();
+		}
+		//remove farm stack move to mission queue
 		
-		return "";
+		return result;
 	}
 	
 	public String activeService(){

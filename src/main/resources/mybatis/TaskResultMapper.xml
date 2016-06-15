@@ -7,8 +7,8 @@
     values(#{id},#{cFarmId},#{requestMethod},#{params},#{resultStatus},#{errorInfo},now(),#{requestUrl})
     </insert>
     
-    <select id="getOrderTaskResultById">
-    select * from TaskResult where id=#{id} and cFarmId != null
+    <select id="getOrderTaskResultById" resultType="com.chinacloud.isv.domain.TaskResult">
+    select * from TaskResult where id=#{id} and cFarmId != 0
     </select>
     
     <select id="getCount" resultType="Integer" >
@@ -16,7 +16,11 @@
     </select>
     
     <delete id="deleteResult">
-    delete from TaskResult where TO_DAYS(now())-TO_DAYS(addTime)>#{num}
+    delete from TaskResult where cFarmId = 0 and TO_DAYS(now())-TO_DAYS(addTime)>#{num}
+    </delete>
+    
+    <delete id="deleteResultById">
+    delete from TaskResult where id = #{id}
     </delete>
 
 </mapper>
