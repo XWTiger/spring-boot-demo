@@ -180,7 +180,32 @@ public class TaskConsumeService {
 							break;
 						}
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND:{
-							mirFactory.suspendService();
+							String instanceId = params.getData().getPayload().getInstance().getInstanceId();
+							logger.debug("SUSPEND　CASE: the instance id---->"+instanceId);
+							TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
+							if(null == tr){
+								logger.error("when do suspend case,get clone farm id failed because of database return null");
+							}
+							String suspendResult = mirFactory.suspendService(params,tr.getcFarmId());
+							Map<String,String> map = new HashMap<String,String >();
+							map.put("Content-Type", "application/json");
+							CloseableHttpResponse response = null;
+							try {
+								response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), suspendResult);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							HttpEntity entity = response.getEntity();
+							String comebackResult = EntityUtils.toString(entity);
+							logger.info("response entity content--->"+comebackResult);
+							taskResult.setResultStatus("SUCCESS");
+							//add result
+							taskResult.setId(taskStack.getId());
+							taskResult.setRequestMethod(taskStack.getRequestMethod());
+							taskResult.setParams(result);
+							taskResult.setErrorInfo(comebackResult);
+							taskResult.setRequestUrl(taskStack.getCallBackUrl());
+							response.close();
 							break;
 						}
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_QUERY:{

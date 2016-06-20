@@ -5,7 +5,9 @@ import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.chinacloud.isv.entity.Params;
 import com.chinacloud.isv.entity.callbackparams.Data;
+import com.chinacloud.isv.entity.callbackparams.Process;
 import com.chinacloud.isv.util.CaseProvider;
 import com.chinacloud.isv.util.MSUtil;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -74,4 +76,46 @@ public class WhiteholeFactory {
 		jsonObj = getJsonString(data);
 		return jsonObj;
 	}
+	
+	public static String getFailedMsg(Params p,String msgTail,String type){
+		Data data = new Data();
+		Process process = new Process();
+		String result = null;
+		data.setSuccess(false);
+		data.setErrorCode("10001");
+		//data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是删除应用堆栈SSH KEY 失败。");
+		data.setMessage(MSUtil.getChineseName(type)+msgTail);
+		process.setEventId(p.getData().getEventId());
+		process.setInstanceId(p.getData().getPayload().getInstance().getInstanceId());
+		process.setStatus("FAILED");
+		data.setProcess(process);
+		try {
+			result = WhiteholeFactory.getJsonString(data);
+		} catch (JsonProcessingException e) {
+			logger.error("convert failed info to json failed \n"+e.getLocalizedMessage());
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	public static String getSuccessMsg(Params p,String type){
+		Data data = new Data();
+		Process process = new Process();
+		String result = null;
+		data.setSuccess(true);
+		//data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是删除应用堆栈SSH KEY 失败。");
+		data.setMessage(MSUtil.getChineseName(type)+"处理成功");
+		process.setEventId(p.getData().getEventId());
+		process.setInstanceId(p.getData().getPayload().getInstance().getInstanceId());
+		process.setStatus("SUCCESS");
+		data.setProcess(process);
+		try {
+			result = WhiteholeFactory.getJsonString(data);
+		} catch (JsonProcessingException e) {
+			logger.error("convert failed info to json failed \n"+e.getLocalizedMessage());
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
 }

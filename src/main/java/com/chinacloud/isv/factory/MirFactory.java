@@ -1,5 +1,6 @@
 package com.chinacloud.isv.factory;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,6 +27,8 @@ import com.chinacloud.isv.entity.callbackparams.Data;
 import com.chinacloud.isv.entity.callbackparams.Process;
 import com.chinacloud.isv.entity.mir.FarmInfo;
 import com.chinacloud.isv.entity.mir.Farms;
+import com.chinacloud.isv.entity.mir.ServerInfo;
+import com.chinacloud.isv.entity.mir.Servers;
 import com.chinacloud.isv.service.LoginService;
 import com.chinacloud.isv.util.CaseProvider;
 import com.chinacloud.isv.util.MSUtil;
@@ -43,8 +46,6 @@ public class MirFactory {
 	private static final Logger logger = LogManager.getLogger(MirFactory.class);
 	//TODO every request Exception should be catch and return the result
 	public String orderService(int farmId,TaskStack taskStack,VMQeuryParam vp) throws Exception{
-		Data data = new Data();
-		Process process = new Process();
 		String startResult;
 		ResultObject robj= loginService.login("xiaweihu@chinacloud.com.cn", "!@#$QWERasdfzxcv*&POIUjklmbn");
 		WhiteholeFactory wFactory = new WhiteholeFactory();
@@ -52,14 +53,8 @@ public class MirFactory {
 		//do mir request
 		logger.info("=====================申请事件,事件ID: "+params.getData().getEventId()+" ====================");
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
-			data.setSuccess(false);
-			data.setErrorCode("10001");
-			data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)+"处理失败,原因是登录mir系统失败。");
-			process.setEventId(params.getData().getEventId());
-			process.setStatus("FAILED");
 			logger.error("login mir plateform failed");
-			data.setProcess(process);
-			String result = WhiteholeFactory.getJsonString(data);
+			String result = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是登录mir系统失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			return result;
 		}else{
 		//request headers
@@ -76,7 +71,7 @@ public class MirFactory {
 		CloseableHttpResponse chr = MSUtil.httpClientPostUrl(headerMap, farmCloneUrl, params_list);
 		String CloneResult = EntityUtils.toString(chr.getEntity());
 		//do analyze by result
-		String cloneR = "{\"success\":true,\"successMessage\":\"Farm successfully cloned. New farm: 'mir-pack-deploy-test (clone #4)'\"}";
+		//String cloneR = "{\"success\":true,\"successMessage\":\"Farm successfully cloned. New farm: 'mir-pack-deploy-test (clone #4)'\"}";
 		ResultObject resultObject = wFactory.getEntity(ResultObject.class, CloneResult);
 		String cloneFarmId = null;
 		String roles = null;
@@ -108,26 +103,14 @@ public class MirFactory {
 			response.close();
 		}else{
 			logger.error("clone farm failed farmid="+farmId+",errorMessage:"+resultObject.getErrorMessage());
-			data.setSuccess(false);
-			data.setErrorCode("10001");
-			data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)+"处理失败,原因是克隆应用堆栈失败。");
-			process.setEventId(params.getData().getEventId());
-			process.setStatus("FAILED");
-			data.setProcess(process);
-			String result = WhiteholeFactory.getJsonString(data);
+			String result = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是克隆应用堆栈失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			return result;
 		}
 		//logger.info("clone Result======>"+CloneResult);
 		//chr.close();
 		if(null == cloneFarmId){
 			logger.error("get cloned farm id failed");
-			data.setSuccess(false);
-			data.setErrorCode("10001");
-			data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)+"处理失败,原因是获取克隆应用堆栈ID失败。");
-			process.setEventId(params.getData().getEventId());
-			process.setStatus("FAILED");
-			data.setProcess(process);
-			String result = WhiteholeFactory.getJsonString(data);
+			String result = WhiteholeFactory.getFailedMsg(params,"处理失败,原因是获取克隆应用堆栈ID失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			return result;
 		}
 		
@@ -148,16 +131,64 @@ public class MirFactory {
 		return startResult;
 	}
 	
-	public String suspendService(){
+	public String suspendService(Params params,int cFarmId){
 		String result = null;
-		
+		WhiteholeFactory wFactory = new WhiteholeFactory();
+		Map<String,String> headerMap = new HashMap<String,String>();
+		//login
+		ResultObject robj= loginService.login(null,null);
+		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
+			String loginResult = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是登录mir系统失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+			logger.error("login mir plateform failed");
+			return loginResult;
+		}
+		headerMap.put("X-Secure-Key", robj.getSecureKey());
+		headerMap.put("X-Requested-Token", robj.getSpecialToken());
+		//list servers
+		CloseableHttpResponse qRes = null;
+		String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+cFarmId+"&imageId=&limit=10&page=1&query=&start=0";
+		String sInfoJson =null;
+		try {
+			qRes = MSUtil.httpClientGetUrl(headerMap, queryUrl);
+			sInfoJson = EntityUtils.toString(qRes.getEntity());
+		} catch (Exception e) {
+			logger.error("when do suspend case,list servers failed case id");
+			e.printStackTrace();
+		}
+		try {
+			qRes.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		//get server_id and suspend all
+		Servers servers = null;
+		try {
+			servers = wFactory.getEntity(Servers.class, sInfoJson);
+		}catch (Exception e) {
+			logger.error("when suspend case, convert servers info to json failed");
+			String listServersResult = WhiteholeFactory.getFailedMsg(params, "处理失败，转换虚拟机清单信息成JSON格式失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+			e.printStackTrace();
+			return listServersResult;
+		}
+		String suspendUrl = configuration.getMirConnectUrl()+"servers/xSuspendServers";
+		for (ServerInfo s : servers.getData()) {
+			List<NameValuePair> params_list = new ArrayList<NameValuePair>();
+			params_list.add(new BasicNameValuePair("servers","["+s.getServer_id()+"]"));
+			try {
+				MSUtil.httpClientPostUrl(headerMap, suspendUrl, params_list);
+			} catch (Exception e) {
+				logger.error("when suspend case, request mir to suspend vitrual machine failed， farm id:"+s.getServer_id());
+				String listServersResult = WhiteholeFactory.getFailedMsg(params, "处理失败，挂机虚拟机失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+				e.printStackTrace();
+				return listServersResult;
+			}
+		}
+		result = WhiteholeFactory.getSuccessMsg(params, CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
 		return result;
 	}
 	
 	public String cancleService(Params p,int cFarmId,VMQeuryParam vp){
 		String result = null;
-		Data data = new Data();
-		Process process = new Process();
 		WhiteholeFactory wFactory = new WhiteholeFactory();
 		logger.debug("=====================注销事件 farmId:"+cFarmId+"====================");
 		//create mir request url
@@ -165,6 +196,10 @@ public class MirFactory {
 		String terminateFarmUrl = configuration.getMirConnectUrl()+"farms/xTerminate";
 		String removeSSHKeyUrl = configuration.getMirConnectUrl()+"sshkeys/xRemove";
 		ResultObject robj= loginService.login(null,null);
+		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
+			String loginResult = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是登录mir系统失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
+			return loginResult;
+		}
 		Map<String,String> headerMap = new HashMap<String,String>();
 		headerMap.put("X-Secure-Key", robj.getSecureKey());
 		headerMap.put("X-Requested-Token", robj.getSpecialToken());
@@ -207,13 +242,7 @@ public class MirFactory {
 				ResultObject ro= wFactory.getEntity(ResultObject.class, requestR);
 				if(!ro.isSuccess()){
 					logger.error("terminate farm failed");
-					data.setSuccess(false);
-					data.setErrorCode("10001");
-					data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是停止应用堆栈的失败。");
-					process.setEventId(p.getData().getEventId());
-					process.setStatus("FAILED");
-					data.setProcess(process);
-					String resultCancleCase = WhiteholeFactory.getJsonString(data);
+					String resultCancleCase = WhiteholeFactory.getFailedMsg(p, "处理失败,原因是停止应用堆栈的失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
 					return resultCancleCase;
 				}
 				response.close();
@@ -226,13 +255,7 @@ public class MirFactory {
 		try {
 			if(null == sshKeyId){
 				logger.error("the ssh key id is empty");
-				data.setSuccess(false);
-				data.setErrorCode("10001");
-				data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是获取应用堆栈的SSH KEY失败。");
-				process.setEventId(p.getData().getEventId());
-				process.setStatus("FAILED");
-				data.setProcess(process);
-				String resultCancleCase = WhiteholeFactory.getJsonString(data);
+				String resultCancleCase = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是获取应用堆栈的SSH KEY失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
 				return resultCancleCase;
 			}
 			List<NameValuePair> params_list = new ArrayList<NameValuePair>();
@@ -242,13 +265,7 @@ public class MirFactory {
 			ResultObject ro= wFactory.getEntity(ResultObject.class, requestR);
 			if(!ro.isSuccess()){
 				logger.error("remove farm ssh key failed");
-				data.setSuccess(false);
-				data.setErrorCode("10001");
-				data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是删除应用堆栈SSH KEY 失败。");
-				process.setEventId(p.getData().getEventId());
-				process.setStatus("FAILED");
-				data.setProcess(process);
-				String resultCancleCase = WhiteholeFactory.getJsonString(data);
+				String resultCancleCase = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是删除应用堆栈SSH KEY 失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
 				return resultCancleCase;
 			}
 			result = requestR;

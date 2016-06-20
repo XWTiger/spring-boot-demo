@@ -15,6 +15,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 
+import com.chinacloud.isv.domain.TaskResult;
+
 public class MSUtil {
 
 	private static String [] synArray={CaseProvider.EVENT_TYPE_SUBSCRIPTION_QUERY};
@@ -125,4 +127,13 @@ public class MSUtil {
 	        return httpClient.execute(httpGet);
 	 }
 	
+	 public static TaskResult getTaskResult(int type){
+		 TaskResult result = new TaskResult();
+		 if(1 == type){
+			 result.setResultStatus("SUCCESS");
+		 }else{
+			 result.setResultStatus("FAILED");
+		 }
+		 return result;
+	 }
 }

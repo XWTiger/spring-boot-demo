@@ -146,6 +146,7 @@ public class VtrualMachineQuery extends Thread{
 						removeQueryTask(vp);
 						try {
 							result = WhiteholeFactory.getJsonString(data);
+							logger.debug("when cancle case,response info:"+result);
 						} catch (JsonProcessingException e) {
 							logger.error("convert to json failed\n"+e.getLocalizedMessage());
 							e.printStackTrace();
