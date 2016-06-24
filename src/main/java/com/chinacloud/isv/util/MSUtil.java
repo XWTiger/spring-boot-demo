@@ -14,8 +14,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.util.EntityUtils;
 
 import com.chinacloud.isv.domain.TaskResult;
+import com.chinacloud.isv.domain.TaskStack;
 
 public class MSUtil {
 
@@ -126,13 +128,29 @@ public class MSUtil {
 	        httpGet.setConfig(requestConfig);
 	        return httpClient.execute(httpGet);
 	 }
-	
-	 public static TaskResult getTaskResult(int type){
+
+	 /**
+	  * generate a local result
+	  * @param type 1 success  else failed
+	  * @param task 
+	  * @return
+	  */
+	 public static TaskResult getTaskResult(int type,TaskStack task,String r,String comebackResult){
 		 TaskResult result = new TaskResult();
 		 if(1 == type){
 			 result.setResultStatus("SUCCESS");
+			 result.setId(task.getId());
+			 result.setRequestMethod(task.getRequestMethod());
+			 result.setParams(r);
+			 result.setErrorInfo(comebackResult);
+			 result.setRequestUrl(task.getCallBackUrl());
 		 }else{
 			 result.setResultStatus("FAILED");
+			 result.setId(task.getId());
+			 result.setRequestMethod(task.getRequestMethod());
+			 result.setParams(r);
+			 result.setRequestUrl(task.getCallBackUrl());
+			 result.setErrorInfo("call back return result failed:"+comebackResult);
 		 }
 		 return result;
 	 }

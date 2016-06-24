@@ -279,7 +279,8 @@ public class MirFactory {
 		return result;
 	}
 	
-	public String activeService(){
+	public String activeService(Params p,int cFarmId,VMQeuryParam vp){
+		
 		return "";
 	}
 	

@@ -29,6 +29,8 @@ import com.chinacloud.isv.util.MSUtil;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import ch.qos.logback.core.db.dialect.MsSQLDialect;
+
 @Service
 public class TaskConsumeService {
 	private static final Logger logger = LogManager.getLogger(TaskConsumeService.class);
@@ -92,27 +94,10 @@ public class TaskConsumeService {
 									//riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult);
 								}
-								/*ObjectMapper mapper = new ObjectMapper();
-								JsonNode node = mapper.readTree(result);
-								JsonNode rNode = node.get("process");
-								rNode = rNode.get("attribute");
-								if(rNode.isArray()){
-									for (JsonNode jsonNode : rNode) {
-										if(jsonNode.get("key").toString().equals("farmId")){
-											cfarmId = jsonNode.get("value").asInt();
-										};
-									}
-								}*/
 							} catch (Exception e) {
 								logger.error("Consume task error\n"+e.getMessage());
-								taskResult.setResultStatus("FAILED");
-								taskResult.setErrorInfo(e.getLocalizedMessage());
 								//add result
-								taskResult.setId(taskStack.getId());
-								taskResult.setRequestMethod(taskStack.getRequestMethod());
-								taskResult.setParams(result);
-								taskResult.setRequestUrl(taskStack.getCallBackUrl());
-								taskResult.setErrorInfo("call back return result failed:"+e.getMessage());
+								taskResult = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage());
 								//delete the row record of task 
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
@@ -149,27 +134,16 @@ public class TaskConsumeService {
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
-								taskResult.setResultStatus("SUCCESS");
 								//add result
-								taskResult.setId(taskStack.getId());
-								taskResult.setRequestMethod(taskStack.getRequestMethod());
-								taskResult.setParams(result);
-								taskResult.setErrorInfo(comebackResult);
-								taskResult.setRequestUrl(taskStack.getCallBackUrl());
+								taskResult = MSUtil.getTaskResult(0, taskStack, result,comebackResult);
 								//TODO delete the row record of task and the order case result
 								//riskStackDao.deleteTask(taskStack.getId());
 								//taskResultDao.deleteResultById(instanceId);
 								//taskResultDao.addResult(taskResult);
 								} catch (Exception e) {
 									logger.error("Consume task error\n"+e.getMessage());
-									taskResult.setResultStatus("FAILED");
-									taskResult.setErrorInfo(e.getLocalizedMessage());
 									//add result
-									taskResult.setId(taskStack.getId());
-									taskResult.setRequestMethod(taskStack.getRequestMethod());
-									taskResult.setParams(result);
-									taskResult.setRequestUrl(taskStack.getCallBackUrl());
-									taskResult.setErrorInfo("call back return result failed:"+e.getMessage());
+									taskResult = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage());
 									//TODO delete the row record of task 
 									//riskStackDao.deleteTask(taskStack.getId());
 									//taskResultDao.addResult(taskResult);
@@ -198,13 +172,8 @@ public class TaskConsumeService {
 							HttpEntity entity = response.getEntity();
 							String comebackResult = EntityUtils.toString(entity);
 							logger.info("response entity content--->"+comebackResult);
-							taskResult.setResultStatus("SUCCESS");
 							//add result
-							taskResult.setId(taskStack.getId());
-							taskResult.setRequestMethod(taskStack.getRequestMethod());
-							taskResult.setParams(result);
-							taskResult.setErrorInfo(comebackResult);
-							taskResult.setRequestUrl(taskStack.getCallBackUrl());
+							taskResult = MSUtil.getTaskResult(0, taskStack, result, comebackResult);
 							response.close();
 							break;
 						}
