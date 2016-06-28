@@ -62,10 +62,20 @@ public class VtrualMachineQuery extends Thread{
 			e1.printStackTrace();
 		}
 		while(true){
-			logger.debug("=========begin a task query==============");
-			logger.debug("queue size:"+queryList.size());
 			try {
 				ArrayList<VMQeuryParam> task_list = getQueryTaskLine();
+				if(task_list.size() > 0){
+					logger.debug("=========begin a task query==============");
+					logger.debug("queue size:"+queryList.size());
+				}else{
+					try {
+						currentThread();
+						Thread.sleep(1000);
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
+					continue;
+				}
 				for (VMQeuryParam vp : task_list){
 					//create url
 					String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+vp.getcFarmId()+"&imageId=&limit=10&page=1&query=&start=0";
@@ -74,7 +84,89 @@ public class VtrualMachineQuery extends Thread{
 					headerMap.put("X-Requested-Token", vp.getSpecialToken());
 					Data data = new Data();
 					Process process = new Process();
-					if(1 == vp.getType()){
+					if(2 == vp.getType()){//active case
+						logger.debug("type: active case");
+						logger.debug("------------------------------------");
+						//get all servers status 
+						CloseableHttpResponse qResult;
+						try {
+							qResult = MSUtil.httpClientGetUrl(headerMap, queryUrl);
+							String queryR = EntityUtils.toString(qResult.getEntity());
+							logger.debug("vm info:"+queryR);
+							WhiteholeFactory wf = new WhiteholeFactory();
+							Servers server = wf.getEntity(Servers.class,queryR);
+							qResult.close();
+							logger.debug("total :"+server.getTotal());
+							if(Integer.parseInt(server.getTotal()) > 0){
+								int count =0;
+								for (ServerInfo si : server.getData()) {
+									if(si.getStatus().equals("Running")){
+										count++;
+									}
+								}
+								logger.debug("Running number:"+count);
+								if(count == Integer.parseInt(server.getTotal())){
+									logger.info("all virtual machine are Running, farmid:"+vp.getcFarmId());
+									data.setSuccess(true);
+									data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE)+"处理成功。");
+									process.setEventId(vp.getEnventId());
+									process.setStatus("SUCCESS");
+									process.setInstanceId(vp.getInstanceId());
+									data.setProcess(process);
+									removeQueryTask(vp);
+								}else{
+									if(timeOutCheck(vp)){
+										removeQueryTask(vp);
+									}
+									continue;
+								}
+							}
+						} catch (Exception e1) {
+							logger.error("when active farm stack id:"+vp.getTaskId()+" falied,because of query virtual machine number error");
+							e1.printStackTrace();
+						}
+						//call back return result 
+						Map<String,String> map = new HashMap<String,String >();
+						map.put("Content-Type", "application/json");
+						TaskResult taskResult = new TaskResult();
+						String result = null;
+						try {
+							result = WhiteholeFactory.getJsonString(data);
+						} catch (JsonProcessingException e1) {
+							logger.error("convert to json failed\n"+e1.getLocalizedMessage());
+							e1.printStackTrace();
+						}
+						try {
+							CloseableHttpResponse response = MSUtil.httpClientPostUrl(map, vp.getCallbackUrl(), result);
+							HttpEntity entity = response.getEntity();
+							String comebackResult = EntityUtils.toString(entity);
+							logger.info("response entity content--->"+comebackResult);
+							taskResult.setResultStatus("SUCCESS");
+							//add result
+							taskResult.setId(vp.getTaskId());
+							taskResult.setRequestMethod("POST");
+							taskResult.setParams(result);
+							taskResult.setErrorInfo(comebackResult);
+							taskResult.setRequestUrl(vp.getCallbackUrl());
+							//TODO delete the row record of task and the order case result
+							//riskStackDao.deleteTask(taskStack.getId());
+							//taskResultDao.deleteResultById(instanceId);
+							//taskResultDao.addResult(taskResult);
+						} catch (Exception e) {
+							taskResult.setResultStatus("FAILED");
+							taskResult.setErrorInfo(e.getLocalizedMessage());
+							//add result
+							taskResult.setId(vp.getTaskId());
+							taskResult.setRequestMethod("POST");
+							taskResult.setParams(result);
+							taskResult.setRequestUrl(vp.getCallbackUrl());
+							taskResult.setErrorInfo("call back return result failed:"+e.getMessage());
+							//TODO delete the row record of task 
+							//riskStackDao.deleteTask(taskStack.getId());
+							//taskResultDao.addResult(taskResult);
+							e.printStackTrace();
+						}
+					}else if(1 == vp.getType()){
 						logger.debug("type: cancle case");
 						logger.debug("------------------------------------");
 						//wait for remove farm stack mission
@@ -133,7 +225,6 @@ public class VtrualMachineQuery extends Thread{
 							e.printStackTrace();
 						}
 						//return success result
-						int flag = 0;
 						if(null == data.getErrorCode() || data.getErrorCode().equals("")){
 							data.setSuccess(true);
 							data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理成功。");
@@ -141,7 +232,6 @@ public class VtrualMachineQuery extends Thread{
 							process.setStatus("SUCCESS");
 							process.setInstanceId(vp.getInstanceId());
 							data.setProcess(process);
-							flag++;
 						}
 						removeQueryTask(vp);
 						try {
@@ -185,8 +275,6 @@ public class VtrualMachineQuery extends Thread{
 							//taskResultDao.addResult(taskResult);
 							e.printStackTrace();
 						}
-						
-						
 					}else if(0 == vp.getType()){//wait for create farm stack
 						logger.debug("type: order case");
 						logger.debug("------------------------------------");
@@ -294,7 +382,7 @@ public class VtrualMachineQuery extends Thread{
 									map.put("Content-Type", "application/json");
 									result = WhiteholeFactory.getJsonString(data);
 									CloseableHttpResponse callbackResponse = null;
-									logger.info("call back return result: "+result);
+									logger.info("call back return result: "+ result);
 									try {
 										callbackResponse = MSUtil.httpClientPostUrl(map,vp.getCallbackUrl(), result);
 									} catch (Exception e) {

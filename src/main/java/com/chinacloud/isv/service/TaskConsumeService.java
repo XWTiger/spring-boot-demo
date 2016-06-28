@@ -29,8 +29,6 @@ import com.chinacloud.isv.util.MSUtil;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
-import ch.qos.logback.core.db.dialect.MsSQLDialect;
-
 @Service
 public class TaskConsumeService {
 	private static final Logger logger = LogManager.getLogger(TaskConsumeService.class);
@@ -95,7 +93,7 @@ public class TaskConsumeService {
 									taskResultDao.addResult(taskResult);
 								}
 							} catch (Exception e) {
-								logger.error("Consume task error\n"+e.getMessage());
+								logger.error("Consume task error\n"+e.getLocalizedMessage());
 								//add result
 								taskResult = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage());
 								//delete the row record of task 
@@ -178,11 +176,27 @@ public class TaskConsumeService {
 							break;
 						}
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_QUERY:{
-							mirFactory.queryService();
 							break;
 						}
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE:{
-							mirFactory.activeService();
+							String instanceId = params.getData().getPayload().getInstance().getInstanceId();
+							VMQeuryParam vmQeuryParam = new VMQeuryParam();
+							logger.debug("ACTIVE VITRUAL MACHINE　CASE: the instance id---->"+instanceId);
+							TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
+							if(null == tr){
+								logger.error("when do active virtual machine case,get clone farm id failed because of database return null");
+							}
+							result = mirFactory.activeService(params,tr.getcFarmId(),vmQeuryParam);
+							if(result.equals(CaseProvider.ACTIVE_FIRST_STEP)){
+								vmQeuryParam.setCallbackUrl(taskStack.getCallBackUrl());
+								vmQeuryParam.setcFarmId(tr.getcFarmId());
+								vmQeuryParam.setEnventId(params.getData().getEventId());
+								vmQeuryParam.setTaskId(taskStack.getId());
+								vmQeuryParam.setType(2);
+								vmQeuryParam.setInstanceId(instanceId);
+								vtrualMachineQuery.addQueryTask(vmQeuryParam);
+								vtrualMachineQuery.start();
+							}
 							break;
 						}
 						default:{

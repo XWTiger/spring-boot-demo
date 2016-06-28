@@ -59,7 +59,13 @@ public class WhiteholeFactory {
 		String cTail = stringBuilder.substring(stringBuilder.lastIndexOf(".")+1,stringBuilder.length());
 		return cTail;
 	}
-	
+	/**
+	 * return asyn message
+	 * @param eventId
+	 * @param caseName
+	 * @return
+	 * @throws JsonProcessingException
+	 */
 	public static String getAsynReturnJson(String eventId,String caseName) throws JsonProcessingException{
 		String jsonObj = null;
 		Data data = new Data();
@@ -77,14 +83,20 @@ public class WhiteholeFactory {
 		return jsonObj;
 	}
 	
-	public static String getFailedMsg(Params p,String msgTail,String type){
+	/**
+	 * get call back failed result
+	 * @param p
+	 * @param type
+	 * @return string
+	 */
+	public static String getFailedMsg(Params p,String msgTail,String caseType){
 		Data data = new Data();
 		Process process = new Process();
 		String result = null;
 		data.setSuccess(false);
 		data.setErrorCode("10001");
 		//data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是删除应用堆栈SSH KEY 失败。");
-		data.setMessage(MSUtil.getChineseName(type)+msgTail);
+		data.setMessage(MSUtil.getChineseName(caseType)+msgTail);
 		process.setEventId(p.getData().getEventId());
 		process.setInstanceId(p.getData().getPayload().getInstance().getInstanceId());
 		process.setStatus("FAILED");
@@ -97,7 +109,12 @@ public class WhiteholeFactory {
 		}
 		return result;
 	}
-	
+	/**
+	 * get call back success result
+	 * @param p
+	 * @param type
+	 * @return string
+	 */
 	public static String getSuccessMsg(Params p,String type){
 		Data data = new Data();
 		Process process = new Process();
@@ -117,5 +134,25 @@ public class WhiteholeFactory {
 		}
 		return result;
 	}
-	
+	/**
+	 * get farmId by parameters
+	 * @param p
+	 * @return bigger than 0 is valid value
+	 */
+	public static int getFarmId(Params p){
+		int id = 0;
+		String value = p.getData().getPayload().getOrder().getEditionCode();
+		int index = value.indexOf("farmId");
+		int begin = index+9;
+		int end = 0;
+		System.out.println("begin:"+begin);
+		for(int i = begin ; i < value.length() - 1 ; i++){
+			if(value.substring(i, i+1).equals("\"")){
+				end = i;
+				break;
+			}
+		}
+		id = Integer.parseInt(value.substring(begin, end));
+		return id;
+	}
 }

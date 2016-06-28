@@ -35,7 +35,13 @@ public class MirRequestService {
 	public String  sendRequest(String url){
 		String message = null;
 		//do login or get x-request-token
+		if(MSUtil.isTestParameter(url)){
+			return "{\"code\":200, \"msg\" : \"success\"}";
+		}
 		
+		if(!MSUtil.httpUrlCheck(url)){
+			return "{\"code\":500, \"msg\" : \"fail\"}";
+		}
 		//1. request the parameters
 		if(null == url || "".equals(url)){
 			throw new IllegalArgumentException("url error");
@@ -69,7 +75,7 @@ public class MirRequestService {
 				//syn this is case query
 				logger.info("--------- syn-----------");
 				MirFactory mFactory = new MirFactory();
-				String result = mFactory.queryService();
+				String result = mFactory.queryService(params);
 				logger.info(result);
 				logger.info("------------------------");
 				return result;
@@ -80,7 +86,8 @@ public class MirRequestService {
 				riskStack.setCallBackUrl(params.getData().getCallBackUrl());
 				riskStack.setId(uuid);
 				riskStack.setParams(sb.toString());
-				riskStack.setFarmId(201);
+				int farmId = WhiteholeFactory.getFarmId(params);
+				riskStack.setFarmId(farmId);
 				riskStack.setLock(0);
 				//it is useful to add a analyzation method to decide witch request method to use
 				riskStack.setRequestMethod("post");

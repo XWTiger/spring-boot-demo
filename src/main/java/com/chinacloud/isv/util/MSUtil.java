@@ -14,7 +14,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.util.EntityUtils;
 
 import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.domain.TaskStack;
@@ -153,5 +152,28 @@ public class MSUtil {
 			 result.setErrorInfo("call back return result failed:"+comebackResult);
 		 }
 		 return result;
+	 }
+	 /**
+	  * if is a formal request url
+	  * @param url
+	  * @return true if yes otherwise return false 
+	  */
+	 public static boolean httpUrlCheck(String url){
+		 boolean b = true;
+		 String regex = "^(http|https)://([\\w-]+.)+[\\w-]+(/[\\w-./?%&=]*)?$";
+		 b = url.matches(regex);
+		 return b;
+	 }
+	 /**
+	  * is test request?
+	  * @param p
+	  * @return true ,if is test request
+	  */
+	 public static boolean isTestParameter(String p){
+		 boolean b = true;
+		 if(!p.equals("{eventUrl}")){
+			 b = false;
+		 }
+		 return b;
 	 }
 }

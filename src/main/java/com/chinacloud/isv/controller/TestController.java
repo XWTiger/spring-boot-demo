@@ -13,14 +13,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.chinacloud.isv.component.VtrualMachineQuery;
-import com.chinacloud.isv.entity.Creator;
-import com.chinacloud.isv.entity.Params;
 import com.chinacloud.isv.entity.VMQeuryParam;
-import com.chinacloud.isv.entity.callbackparams.Data;
-import com.chinacloud.isv.entity.mir.Farms;
-import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,7 +37,6 @@ public class TestController {
 	public String greeting(){
 		logger.info("----------hello world------------");
 		logger.error("-------------error test--------------");
-		WhiteholeFactory sFactory = new WhiteholeFactory();
 		ObjectMapper mapper = new ObjectMapper();
 		VMQeuryParam vParam = new VMQeuryParam();
 		vParam.setCallbackUrl("asdfasdf");
@@ -53,7 +46,6 @@ public class TestController {
 		vtrualMachineQuery.addQueryTask(vParam);
 		vtrualMachineQuery.start();
 		try {
-			Farms farms = sFactory.getEntity(Farms.class, json2);
 			JsonNode node = mapper.readTree(json2);
 			JsonNode node2 = node.get("data");
 			if(node2.isArray()){
@@ -61,8 +53,6 @@ public class TestController {
 					System.out.println(jsonNode.get("name").toString());
 				}
 			}
-			
-			
 		} catch (JsonParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
