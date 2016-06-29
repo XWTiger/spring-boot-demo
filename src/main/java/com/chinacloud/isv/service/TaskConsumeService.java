@@ -76,29 +76,20 @@ public class TaskConsumeService {
 									Map<String,String> map = new HashMap<String,String >();
 									map.put("Content-Type", "application/json");
 									System.out.println(params.getData().getCallBackUrl());
-									CloseableHttpResponse response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), result);
+									String newResult = MSUtil.encode(result);
+									CloseableHttpResponse response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
 									HttpEntity entity = response.getEntity();
 									logger.info("response entity content--->"+EntityUtils.toString(entity));
 									response.close();
-									taskResult.setResultStatus("SUCCESS");
-									//add result
-									taskResult.setId(taskStack.getId());
-									taskResult.setRequestMethod(taskStack.getRequestMethod());
-									taskResult.setParams(result);
-									taskResult.setErrorInfo(EntityUtils.toString(entity));
-									taskResult.setRequestUrl(taskStack.getCallBackUrl());
-									taskResult.setErrorInfo(EntityUtils.toString(entity));
+									taskResult = MSUtil.getTaskResult(1, taskStack, result, EntityUtils.toString(entity));
 									//TODO delete the row record of task 
-									//riskStackDao.deleteTask(taskStack.getId());
+									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult);
 								}
 							} catch (Exception e) {
-								logger.error("Consume task error\n"+e.getLocalizedMessage());
-								//add result
-								taskResult = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage());
-								//delete the row record of task 
-								riskStackDao.deleteTask(taskStack.getId());
-								taskResultDao.addResult(taskResult);
+								logger.error("Order case,Consume task error\n"+e.getLocalizedMessage());
+								//unlock the task
+								riskStackDao.unLockTask(taskStack.getId());
 								e.printStackTrace();
 							}
 							break;
@@ -112,7 +103,7 @@ public class TaskConsumeService {
 							if(null == tr){
 								logger.error("when do cancle case,get clone farm id failed because of database return null");
 							}
-							result = mirFactory.cancleService(params,tr.getcFarmId(),vmQeuryParam);
+							result = mirFactory.cancleService(params,tr.getcFarmId(),vmQeuryParam,taskStack);
 							logger.info("cancle case, call back params---->"+result);
 							if(result.contains("SSH key(s) successfully removed")){//TODO maybe update.
 								vmQeuryParam.setcFarmId(tr.getcFarmId());
@@ -121,6 +112,7 @@ public class TaskConsumeService {
 								vmQeuryParam.setCallbackUrl(params.getData().getCallBackUrl());
 								vmQeuryParam.setTaskId(taskStack.getId());
 								vmQeuryParam.setBeginTime(new Date().getTime());
+								vmQeuryParam.setInstanceId(instanceId);
 								vtrualMachineQuery.addQueryTask(vmQeuryParam);
 								vtrualMachineQuery.start();
 							}else{
@@ -128,23 +120,24 @@ public class TaskConsumeService {
 								map.put("Content-Type", "application/json");
 								System.out.println(params.getData().getCallBackUrl());
 								try {
-								response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), result);
+								String newResult = MSUtil.encode(result);
+								response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
 								//add result
 								taskResult = MSUtil.getTaskResult(0, taskStack, result,comebackResult);
-								//TODO delete the row record of task and the order case result
-								//riskStackDao.deleteTask(taskStack.getId());
-								//taskResultDao.deleteResultById(instanceId);
-								//taskResultDao.addResult(taskResult);
+								//delete the row record of task and the order case result
+								riskStackDao.deleteTask(taskStack.getId());
+								taskResultDao.deleteResultById(instanceId);
+								taskResultDao.addResult(taskResult);
 								} catch (Exception e) {
 									logger.error("Consume task error\n"+e.getMessage());
 									//add result
 									taskResult = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage());
-									//TODO delete the row record of task 
-									//riskStackDao.deleteTask(taskStack.getId());
-									//taskResultDao.addResult(taskResult);
+									//delete the row record of task 
+									riskStackDao.deleteTask(taskStack.getId());
+									taskResultDao.addResult(taskResult);
 									e.printStackTrace();
 								}
 								response.close();
@@ -158,12 +151,13 @@ public class TaskConsumeService {
 							if(null == tr){
 								logger.error("when do suspend case,get clone farm id failed because of database return null");
 							}
-							String suspendResult = mirFactory.suspendService(params,tr.getcFarmId());
+							String suspendResult = mirFactory.suspendService(params,tr.getcFarmId(),taskStack);
 							Map<String,String> map = new HashMap<String,String >();
 							map.put("Content-Type", "application/json");
 							CloseableHttpResponse response = null;
 							try {
-								response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), suspendResult);
+								String newResult = MSUtil.encode(suspendResult);
+								response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -171,7 +165,7 @@ public class TaskConsumeService {
 							String comebackResult = EntityUtils.toString(entity);
 							logger.info("response entity content--->"+comebackResult);
 							//add result
-							taskResult = MSUtil.getTaskResult(0, taskStack, result, comebackResult);
+							taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult);
 							response.close();
 							break;
 						}
@@ -186,7 +180,10 @@ public class TaskConsumeService {
 							if(null == tr){
 								logger.error("when do active virtual machine case,get clone farm id failed because of database return null");
 							}
-							result = mirFactory.activeService(params,tr.getcFarmId(),vmQeuryParam);
+							result = mirFactory.activeService(params,tr.getcFarmId(),vmQeuryParam,taskStack);
+							if(null == result){
+								break;
+							}
 							if(result.equals(CaseProvider.ACTIVE_FIRST_STEP)){
 								vmQeuryParam.setCallbackUrl(taskStack.getCallBackUrl());
 								vmQeuryParam.setcFarmId(tr.getcFarmId());
@@ -194,6 +191,7 @@ public class TaskConsumeService {
 								vmQeuryParam.setTaskId(taskStack.getId());
 								vmQeuryParam.setType(2);
 								vmQeuryParam.setInstanceId(instanceId);
+								vmQeuryParam.setBeginTime(new Date().getTime());
 								vtrualMachineQuery.addQueryTask(vmQeuryParam);
 								vtrualMachineQuery.start();
 							}

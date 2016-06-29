@@ -3,7 +3,7 @@ package com.chinacloud.isv.domain;
 public class TaskResult {
 
 	private String id;
-	private int cFarmId;
+	private int cFarmId = 0;
 	private String requestMethod;
 	private String params;
 	private String resultStatus;

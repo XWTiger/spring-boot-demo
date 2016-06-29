@@ -20,7 +20,7 @@ create table if not exists TaskResult
    requestUrl               text not null,
    params                   text not null,/*回调返回给外部系统的参数，是mir相关处理的结果*/
    resultStatus             varchar(64) not null,
-   errorInfo                     text,/*如果回调返回结果失败存放错误信息，否则为空*/
+   info                     text,/*如果回调返回结果失败存放错误信息，否则为空*/
    addTime                  timestamp NOT NULL,
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

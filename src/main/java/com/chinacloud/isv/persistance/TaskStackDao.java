@@ -9,5 +9,6 @@ public interface TaskStackDao {
 	public void addTask(TaskStack task);
 	public void deleteTask(String id);
 	public Integer lockTask(String id);
+	public Integer unLockTask(String id);
 	
 }

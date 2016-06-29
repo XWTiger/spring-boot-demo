@@ -12,6 +12,7 @@ public class VMQeuryParam {
 	private String enventId;
 	private long beginTime;
 	private int type = 0;
+	//the instance id is order case result id
 	private String instanceId;
 	
 	public String getInstanceId() {

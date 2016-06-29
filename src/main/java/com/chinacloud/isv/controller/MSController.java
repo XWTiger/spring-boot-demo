@@ -12,7 +12,7 @@ public class MSController {
 
 	@Autowired
 	MirRequestService mirRequestService;
-	@RequestMapping("/event_request")
+	@RequestMapping(value="/event_request",produces = {"application/json;charset=UTF-8"})
 	public String eventRequest(@RequestParam String url){
 		System.out.println("this is callback url ---->"+url);
 		return mirRequestService.sendRequest(url);

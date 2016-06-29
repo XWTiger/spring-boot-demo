@@ -1,5 +1,6 @@
 package com.chinacloud.isv.util;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -175,5 +176,19 @@ public class MSUtil {
 			 b = false;
 		 }
 		 return b;
+	 }
+	 /**
+	  * encode string to ISO-8859-1
+	  * @param s
+	  * @return string
+	  */
+	 public static String encode(String s){
+		 String newString = null;
+		try {
+			newString = new String(s.getBytes(),"ISO-8859-1");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} 
+		return newString;
 	 }
 }

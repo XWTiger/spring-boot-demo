@@ -17,11 +17,14 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.domain.TaskStack;
 import com.chinacloud.isv.entity.Params;
 import com.chinacloud.isv.factory.MirFactory;
 import com.chinacloud.isv.factory.WhiteholeFactory;
+import com.chinacloud.isv.persistance.TaskResultDao;
 import com.chinacloud.isv.persistance.TaskStackDao;
+import com.chinacloud.isv.util.CaseProvider;
 import com.chinacloud.isv.util.MSUtil;
 
 @Service
@@ -30,7 +33,10 @@ public class MirRequestService {
 	
 	@Autowired
 	private TaskStackDao riskStackDao;
-	
+	@Autowired
+	private TaskResultDao taskResultDao;
+	@Autowired
+	private MirFactory mirFactory;
 	
 	public String  sendRequest(String url){
 		String message = null;
@@ -61,8 +67,9 @@ public class MirRequestService {
 	        String line = null;
 	        while ((line = br.readLine()) != null) {   
                 sb.append(line);   
-            }   
-			System.out.println("response entity content--->"+sb.toString());
+            }
+	        logger.info("============add a mission=================");
+			logger.info("response entity content--->"+sb.toString());
 			WhiteholeFactory wf = new WhiteholeFactory();
 			Params params = wf.getEntity(Params.class,sb.toString());
 			System.out.println("entity --->"+params.getData().getCallBackUrl());
@@ -74,8 +81,7 @@ public class MirRequestService {
 			if(isSyn){
 				//syn this is case query
 				logger.info("--------- syn-----------");
-				MirFactory mFactory = new MirFactory();
-				String result = mFactory.queryService(params);
+				String result = mirFactory.queryService(params);
 				logger.info(result);
 				logger.info("------------------------");
 				return result;
@@ -86,7 +92,18 @@ public class MirRequestService {
 				riskStack.setCallBackUrl(params.getData().getCallBackUrl());
 				riskStack.setId(uuid);
 				riskStack.setParams(sb.toString());
-				int farmId = WhiteholeFactory.getFarmId(params);
+				int farmId = 0;
+				if(params.getData().getType().equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)){
+					farmId = WhiteholeFactory.getFarmId(params);
+				}else{
+					String instanceId = params.getData().getPayload().getInstance().getInstanceId();
+					logger.info("QUERY　CASE: the instance id---->"+instanceId);
+					TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
+					if(null == tr){
+						logger.error("when add mission to task stack,get clone farm id failed because of database return null");
+					}
+					farmId = tr.getcFarmId();
+				}
 				riskStack.setFarmId(farmId);
 				riskStack.setLock(0);
 				//it is useful to add a analyzation method to decide witch request method to use
@@ -104,15 +121,16 @@ public class MirRequestService {
 			
 			response.close();
 		} catch (ClientProtocolException e) {
-			logger.error("httpclient ClientProtocolException: \n"+e.getMessage());
+			logger.error("httpclient ClientProtocolException: \n"+e.getLocalizedMessage());
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-			logger.error("httpclient IOException: \n"+e.getMessage());
+			logger.error("httpclient IOException: \n"+e.getLocalizedMessage());
 		}catch (Exception e) {
-			logger.error("httpclient error: \n"+e.getMessage());
+			logger.error("httpclient error: \n"+e.getLocalizedMessage());
 			e.printStackTrace();
 		}
+		logger.info("request case,return result message:"+message);
 		return message;
 	}
 	
