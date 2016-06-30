@@ -38,7 +38,6 @@ import com.chinacloud.isv.util.MSUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.std.StdArraySerializers.BooleanArraySerializer;
 @Component
 public class MirFactory {
 
@@ -60,6 +59,11 @@ public class MirFactory {
 		Params params = null;
 		try {
 			params = wFactory.getEntity(Params.class, taskStack.getParams());
+			vp.setUsrName(params.getData().getCreator().getEmail());
+			vp.setModelFarmId(farmId);
+			vp.setSystem(params.getData().getPayload().getTenant().getName());
+			//TODO vp add service instance id
+			
 		} catch (Exception e) {
 			logger.error("order case,convert string to object failed.");
 			e.printStackTrace();
@@ -69,6 +73,7 @@ public class MirFactory {
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
 			logger.error("login mir plateform failed");
 			String result = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是登录mir系统失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
+			taskStackDao.unLockTask(taskStack.getId());
 			return result;
 		}else{
 		//request headers
@@ -186,6 +191,7 @@ public class MirFactory {
 		//service start
 		String farmStartUrl = configuration.getMirConnectUrl()+"farms/xLaunch";
 		List<NameValuePair> params_list_2 = new ArrayList<NameValuePair>();
+		vp.setcFarmId(Integer.parseInt(cloneFarmId));
 		params_list_2.add(new BasicNameValuePair("farmId",cloneFarmId));
 		CloseableHttpResponse startFarm = null;
 		try {
@@ -224,6 +230,7 @@ public class MirFactory {
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
 			String loginResult = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是登录mir系统失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
 			logger.error("login mir plateform failed");
+			taskStackDao.unLockTask(taskStack.getId());
 			return loginResult;
 		}
 		headerMap.put("X-Secure-Key", robj.getSecureKey());
@@ -269,7 +276,7 @@ public class MirFactory {
 				logger.info("suspend case, result:"+EntityUtils.toString(suspendR.getEntity()));
 			} catch (Exception e) {
 				logger.error("when suspend case, request mir to suspend vitrual machine failed， farm id:"+s.getServer_id());
-				String listServersResult = WhiteholeFactory.getFailedMsg(params, "处理失败，挂机虚拟机失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+				String listServersResult = WhiteholeFactory.getFailedMsg(params, "处理失败，挂起虚拟机失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
 				taskStackDao.unLockTask(taskStack.getId());
 				e.printStackTrace();
 				return listServersResult;
@@ -280,8 +287,6 @@ public class MirFactory {
 				e.printStackTrace();
 			}
 		}
-		
-		
 		result = WhiteholeFactory.getSuccessMsg(params, CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
 		return result;
 	}
@@ -297,6 +302,7 @@ public class MirFactory {
 		ResultObject robj= loginService.login(null,null);
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
 			String loginResult = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是登录mir系统失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
+			taskStackDao.unLockTask(taskStack.getId());
 			return loginResult;
 		}
 		Map<String,String> headerMap = new HashMap<String,String>();
@@ -372,8 +378,7 @@ public class MirFactory {
 			result = requestR;
 			response.close();
 		} catch (Exception e) {
-			logger.error("remove farm ssh key failed\n"+e.getLocalizedMessage());
-			taskStackDao.unLockTask(taskStack.getId());
+			logger.error("cancle case,remove farm ssh key failed\n"+e.getLocalizedMessage());
 			e.printStackTrace();
 		}
 		//remove farm stack move to mission queue
@@ -483,7 +488,9 @@ public class MirFactory {
 			qResult = MSUtil.httpClientGetUrl(headerMap, queryUrl);
 		} catch (Exception e1) {
 			logger.error("query case,request mir plate failed");
+			result = WhiteholeFactory.getFailedMsg(p,  "处理失败,原因是查询应用堆栈信息请求失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_QUERY);
 			e1.printStackTrace();
+			return result;
 		}
 		String queryR = null;
 		try {

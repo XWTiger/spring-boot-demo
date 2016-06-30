@@ -24,3 +24,15 @@ create table if not exists TaskResult
    addTime                  timestamp NOT NULL,
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+create table if not exists OrderRecord
+(
+   id                       varchar(36) not null,
+   sysName                  varchar(255) not null,
+   modelFarmId              int(10) not null,
+   cFarmId                  int(10) not null,
+   usrName                  varchar(255),
+   appStackServiceId        varchar(255),
+   addTime                  timestamp NOT NULL,
+   primary key (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

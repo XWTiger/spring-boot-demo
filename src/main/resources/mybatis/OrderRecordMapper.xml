@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinacloud.isv.persistance.OrderRecordDao">
+  <select id="getList" resultType="com.chinacloud.isv.domain.OrderRecord">
+    select * from OrderRecord
+    <where>
+      appStackServiceId=#{serviceInstanceId}
+    </where>
+    <if test="orderBy != null">
+      order by ${orderBy} ${order}
+    </if>
+    <!-- order by creation_time desc -->
+    limit #{limit} offset #{offset}
+  </select>
+
+  <delete id="deleteByCloneFarmId">
+    delete from OrderRecord where cFarmId=#{clonedFarmId}
+  </delete>
+
+  <select id="cout" resultType="Integer">
+    select count(*) from OrderRecord where appStackServiceId=#{serviceInstanceId}
+  </select>
+
+  <insert id="addRecord">
+    insert into OrderRecord(id,sysName,modelFarmId,cFarmId,usrName,appStackServiceId,addTime) 
+    values (#{id},#{sysName},#{modelFarmId},#{cFarmId},#{usrName},#{appStackServiceId},now())
+  </insert>
+</mapper>

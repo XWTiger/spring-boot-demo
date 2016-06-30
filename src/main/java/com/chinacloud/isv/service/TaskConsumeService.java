@@ -152,6 +152,10 @@ public class TaskConsumeService {
 								logger.error("when do suspend case,get clone farm id failed because of database return null");
 							}
 							String suspendResult = mirFactory.suspendService(params,tr.getcFarmId(),taskStack);
+							if(null == suspendResult){
+								logger.error("suspend case, suspend service return null");
+								break;
+							}
 							Map<String,String> map = new HashMap<String,String >();
 							map.put("Content-Type", "application/json");
 							CloseableHttpResponse response = null;
