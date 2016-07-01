@@ -134,7 +134,7 @@ public class TaskConsumeService {
 								} catch (Exception e) {
 									logger.error("Consume task error\n"+e.getMessage());
 									//add result
-									taskResult = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage());
+									taskResult = MSUtil.getTaskResult(0, taskStack, result,"call back response cancle case success result faild ,error info:"+e.getLocalizedMessage());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult);

@@ -2,6 +2,8 @@ package com.chinacloud.isv.controller;
 
 import java.util.HashMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,6 +21,7 @@ public class MSController {
 	MirRequestService mirRequestService;
 	@Autowired
 	OrderRecordService orderRecordService;
+	private Logger logger = LogManager.getLogger(MSController.class);
 	
 	@RequestMapping(value="/event_request",produces = {"application/json;charset=UTF-8"})
 	public String eventRequest(@RequestParam String url){
@@ -34,6 +37,7 @@ public class MSController {
 	        @RequestParam("page_size")int pageSize,
 			@RequestParam(value="order_by", required=false)String orderBy,
 			@RequestParam(value="order", required=false) String order){
+		logger.info("=======query order service instance====serviece id:"+serviceId);
 		return orderRecordService.getRecordList(serviceId, page, pageSize, orderBy, order);
 	}
 }

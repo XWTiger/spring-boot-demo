@@ -19,7 +19,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.validator.internal.util.privilegedactions.GetAnnotationParameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -357,7 +356,7 @@ public class VtrualMachineQuery extends Thread{
 									//check time 
 									boolean b = timeOutCheck(vp);
 									if(b){
-										TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id"+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "");
+										TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id="+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "");
 										riskStackDao.deleteTask(vp.getTaskId());
 										taskResultDao.addResult(taskResult);
 										removeQueryTask(vp);
@@ -366,7 +365,7 @@ public class VtrualMachineQuery extends Thread{
 							}else{// server number less than total
 								boolean b = timeOutCheck(vp);
 								if(b){
-									TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id"+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "");
+									TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id="+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "");
 									riskStackDao.deleteTask(vp.getTaskId());
 									taskResultDao.addResult(taskResult);
 									removeQueryTask(vp);

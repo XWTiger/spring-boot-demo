@@ -128,13 +128,15 @@ public class MirFactory {
 			try {
 				response = MSUtil.httpClientGetUrl(headerMap, farmInfoUrl);
 			} catch (Exception e) {
+				logger.error("order case,get cloned farm info fialed "+e.getLocalizedMessage());
 				e.printStackTrace();
 			}
 			String farmInfo = null;
 			try {
 				farmInfo = EntityUtils.toString(response.getEntity());
+				logger.info("order case,cloned farm info:"+farmInfo);
 			} catch (Exception e) {
-				logger.error("order case, entity utils convert entity to string failed");
+				logger.error("order case, get cloned farm info ,entity utils convert entity to string failed");
 				e.printStackTrace();
 			}
 			Farms farms = null;
@@ -167,7 +169,7 @@ public class MirFactory {
 				logger.error("close ");
 				e.printStackTrace();
 			}
-		}else{
+		}else{//clone farm failed 
 			logger.error("clone farm failed farmid="+farmId+",errorMessage:"+resultObject.getErrorMessage());
 			String result = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是克隆应用堆栈失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			return result;
@@ -197,12 +199,10 @@ public class MirFactory {
 		try {
 			startFarm = MSUtil.httpClientPostUrl(headerMap, farmStartUrl, params_list_2);
 		} catch (Exception e) {
-			logger.error("order case,start clone farm failed,we will destroy the cloned farm,cloned farm id:"+cloneFarmId);
-			boolean b = removeCloneFarm(cloneFarmId,robj.getSecureKey(),robj.getSpecialToken());
-			if(!b){
-				logger.error("order case, close have cloned farm failed,please get connection with technician");
-			}
+			logger.error("order case,start clone farm failed,cloned farm id:"+cloneFarmId);
+			String result = WhiteholeFactory.getFailedMsg(params,"处理失败,原因是启动克隆应用堆栈失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			e.printStackTrace();
+			return result;
 		}
 		try {
 			startResult = EntityUtils.toString(startFarm.getEntity());
@@ -470,6 +470,10 @@ public class MirFactory {
 		TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
 		if(null == tr){
 			logger.error("when do query case,get clone farm id failed because of database return null");
+		}
+		//task result the order mission is time out
+		if(tr.getErrorInfo().contains(CaseProvider.STATUS_TIME_OUT)){
+			
 		}
 		com.chinacloud.isv.entity.callbackparams.Process process = new com.chinacloud.isv.entity.callbackparams.Process();
 		Map<String,String> headerMap = new HashMap<String,String>();
