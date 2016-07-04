@@ -5,7 +5,7 @@
   <select id="getList" resultType="com.chinacloud.isv.domain.OrderRecord">
     select * from OrderRecord
     <where>
-      appStackServiceId=#{serviceInstanceId}
+      serviceTemplateId=#{serviceTemplateId}
     </where>
     <if test="orderBy != null">
       order by ${orderBy} ${order}

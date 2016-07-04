@@ -97,6 +97,7 @@ public class MirRequestService {
 				//it is useful to add a analyzation method to decide witch request method to use
 				riskStack.setRequestMethod("post");
 				riskStack.setRequestUrl(url);
+				riskStack.setRepeatTimes(0);
 				//3. add risk entity to risk table 
 				riskStackDao.addTask(riskStack);
 				

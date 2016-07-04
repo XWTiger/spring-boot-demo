@@ -9,6 +9,7 @@ create table if not exists TaskStack
    lockTask                     tinyint,
    farmId                   int(10),
    addTime                  timestamp NOT NULL,
+   repeatTimes int(10) unsigned zerofill NOT NULL DEFAULT '0000000000',
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

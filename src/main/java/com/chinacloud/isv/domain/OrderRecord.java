@@ -6,7 +6,7 @@ public class OrderRecord {
 	private String sysName;
 	private int modelFarmId;
 	private int cFarmId;
-	private String appStackServiceId;
+	private String serviceTemplateId;
 	private String usrName;
 	private String addTime;
 	
@@ -46,10 +46,12 @@ public class OrderRecord {
 	public void setAddTime(String addTime) {
 		this.addTime = addTime;
 	}
-	public String getAppStackServiceId() {
-		return appStackServiceId;
+	public String getServiceTemplateId() {
+		return serviceTemplateId;
 	}
-	public void setAppStackServiceId(String appStackServiceId) {
-		this.appStackServiceId = appStackServiceId;
+	public void setServiceTemplateId(String serviceTemplateId) {
+		this.serviceTemplateId = serviceTemplateId;
 	}
+	
+	
 }

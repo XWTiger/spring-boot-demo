@@ -498,8 +498,8 @@ public class VtrualMachineQuery extends Thread{
 	 */
 	private OrderRecord getOrderRecordInstance(VMQeuryParam vp){
 		OrderRecord orderRecord = new OrderRecord();
-		orderRecord.setId(UUID.randomUUID().toString());
-		orderRecord.setAppStackServiceId(vp.getServiceInstanceId());
+		orderRecord.setId(UUID.randomUUID().toString());//service instance id
+		orderRecord.setServiceTemplateId(vp.getServiceTemplateId());
 		orderRecord.setSysName(vp.getSystem());
 		orderRecord.setcFarmId(vp.getcFarmId());
 		orderRecord.setModelFarmId(vp.getModelFarmId());

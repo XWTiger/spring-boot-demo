@@ -10,6 +10,7 @@ public class TaskStack {
 	private String addTime;
 	private int lockTask;
 	private int farmId;
+	private int repeatTimes;
 	
 	
 	public int getLock() {
@@ -60,4 +61,17 @@ public class TaskStack {
 	public void setCallBackUrl(String callBackUrl) {
 		this.callBackUrl = callBackUrl;
 	}
+	public int getLockTask() {
+		return lockTask;
+	}
+	public void setLockTask(int lockTask) {
+		this.lockTask = lockTask;
+	}
+	public int getRepeatTimes() {
+		return repeatTimes;
+	}
+	public void setRepeatTimes(int repeatTimes) {
+		this.repeatTimes = repeatTimes;
+	}
+	
 }

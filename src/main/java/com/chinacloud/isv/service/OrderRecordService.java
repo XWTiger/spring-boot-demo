@@ -22,7 +22,7 @@ public class OrderRecordService {
 	 * @param order
 	 * @return ArrayList<OrderRecord>
 	 */
-	public HashMap<Object, Object> getRecordList(String serviceInstanceId,int page, int pageSize, String orderBy, String order){
+	public HashMap<Object, Object> getRecordList(String serviceTemplateId,int page, int pageSize, String orderBy, String order){
 		if (page < 0) {
             throw new IllegalArgumentException("参数（page）不合法");
         }
@@ -35,9 +35,9 @@ public class OrderRecordService {
         if(null == order || "".equals(order)){
         	order = "desc";
         }
-        double num = orderRecordDao.cout(serviceInstanceId);
+        double num = orderRecordDao.cout(serviceTemplateId);
         int pageNumber =  (int) Math.ceil(num/pageSize);
-        List<OrderRecord> list = orderRecordDao.getList(serviceInstanceId, page * pageSize, pageSize, orderBy, order);
+        List<OrderRecord> list = orderRecordDao.getList(serviceTemplateId, page * pageSize, pageSize, orderBy, order);
         HashMap<Object, Object> map = new HashMap<>();
         map.put("total", pageNumber);
         map.put("list", list);

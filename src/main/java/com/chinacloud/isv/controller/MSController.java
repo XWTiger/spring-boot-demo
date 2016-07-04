@@ -32,7 +32,7 @@ public class MSController {
 	@ResponseBody
 	@RequestMapping(value="/orders",method=RequestMethod.GET)
 	public HashMap<Object, Object> getOrderRecordList(
-			@RequestParam("service_instance_id") String serviceId,
+			@RequestParam("service_template_id") String serviceId,
 			@RequestParam("page")int page, 
 	        @RequestParam("page_size")int pageSize,
 			@RequestParam(value="order_by", required=false)String orderBy,

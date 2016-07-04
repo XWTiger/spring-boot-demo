@@ -66,7 +66,11 @@ public class LoginService {
 	            System.out.println("login --->strRet:"+strRet);
 	        } catch ( Exception e) {
 	           /* ret.setMessage("登录出现异常, " + e.getMessage());*/
-	            logger.error("登录出现异常, " + e.getMessage());
+	            logger.error("登录mir平台出现异常, " + e.getMessage());
+	            rObject = new ResultObject();
+	            rObject.setSuccess(false);
+	            rObject.setErrorMessage("I can't login the mir platform");
+	            return rObject;
 	        }
 	        try {
 				resp.close();

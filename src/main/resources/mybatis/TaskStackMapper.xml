@@ -6,8 +6,8 @@
         select * from TaskStack where 1=1 limit 20 
     </select>
     <insert id="addTask" parameterType="com.chinacloud.isv.domain.TaskStack">
-        insert into TaskStack(id,requestUrl,requestMethod,params,callBackUrl,lockTask,farmId,addTime) 
-        values(#{id},#{requestUrl},#{requestMethod},#{params},#{callBackUrl},#{lockTask},#{farmId},now())
+        insert into TaskStack(id,requestUrl,requestMethod,params,callBackUrl,lockTask,farmId,addTime,repeatTimes) 
+        values(#{id},#{requestUrl},#{requestMethod},#{params},#{callBackUrl},#{lockTask},#{farmId},now(),#{repeatTimes})
     </insert>
     <delete id="deleteTask" parameterType="String">
         delete from TaskStack where id=#{id} and lockTask = 1
@@ -20,5 +20,15 @@
      <update id="unLockTask" parameterType="String">
       update TaskStack set lockTask=0 where lockTask !=0 and id=#{id}
      </update>
-        
+       
+     <select id="getRepeatTimesById" resultType="Integer">
+        select repeatTimes from TaskStack 
+        <where>
+        id = #{id} and lockTask = 1;
+        </where>
+     </select> 
+     
+     <update id="addRepeageTimesById" >
+        update from TaskStack set repeatTimes=#{repeatTimes} where id = #{id}
+     </update>
 </mapper>

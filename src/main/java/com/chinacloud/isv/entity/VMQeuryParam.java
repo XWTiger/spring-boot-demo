@@ -12,7 +12,7 @@ public class VMQeuryParam {
 	private String enventId;
 	private int modelFarmId;
 	private String system;
-	private String serviceInstanceId;
+	private String serviceTemplateId;
 	private String usrName;
 	private long beginTime;
 	private int type = 0;
@@ -30,11 +30,11 @@ public class VMQeuryParam {
 	public void setSystem(String system) {
 		this.system = system;
 	}
-	public String getServiceInstanceId() {
-		return serviceInstanceId;
+	public String getServiceTemplateId() {
+		return serviceTemplateId;
 	}
-	public void setServiceInstanceId(String serviceInstanceId) {
-		this.serviceInstanceId = serviceInstanceId;
+	public void setServiceTemplateId(String serviceTemplateId) {
+		this.serviceTemplateId = serviceTemplateId;
 	}
 	public String getUsrName() {
 		return usrName;
