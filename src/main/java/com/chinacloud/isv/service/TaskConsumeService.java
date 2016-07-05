@@ -82,7 +82,7 @@ public class TaskConsumeService {
 									logger.info("response entity content--->"+EntityUtils.toString(entity));
 									response.close();
 									taskResult = MSUtil.getTaskResult(1, taskStack, result, EntityUtils.toString(entity));
-									//TODO delete the row record of task 
+									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult);
 								}
@@ -149,27 +149,33 @@ public class TaskConsumeService {
 							logger.debug("SUSPEND　CASE: the instance id---->"+instanceId);
 							TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
 							if(null == tr){
-								logger.error("when do suspend case,get clone farm id failed because of database return null");
+								logger.error("when do suspend case,get cloned farm id failed because of database return null");
+								String  suspendResult = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是克隆的应用堆栈已经被删除。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+								CloseableHttpResponse response  = WhiteholeFactory.callBackReturnResult(suspendResult, params);
+								HttpEntity entity = response.getEntity();
+								String comebackResult = EntityUtils.toString(entity);
+								logger.info("response entity content--->"+comebackResult);
+								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult);
+								riskStackDao.deleteTask(taskStack.getId());
+								taskResultDao.addResult(taskResult);
+								break;
 							}
 							String suspendResult = mirFactory.suspendService(params,tr.getcFarmId(),taskStack);
 							if(null == suspendResult){
 								logger.error("suspend case, suspend service return null");
 								break;
 							}
-							Map<String,String> map = new HashMap<String,String >();
-							map.put("Content-Type", "application/json");
-							CloseableHttpResponse response = null;
-							try {
-								String newResult = MSUtil.encode(suspendResult);
-								response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
-							} catch (Exception e) {
-								e.printStackTrace();
+							CloseableHttpResponse response = WhiteholeFactory.callBackReturnResult(suspendResult, params);
+							if(null == response){
+								logger.error("suspend case, call back return result failed");
 							}
 							HttpEntity entity = response.getEntity();
 							String comebackResult = EntityUtils.toString(entity);
 							logger.info("response entity content--->"+comebackResult);
 							//add result
-							taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult);
+							taskResult = MSUtil.getTaskResult(1, taskStack, suspendResult, comebackResult);
+							riskStackDao.deleteTask(taskStack.getId());
+							taskResultDao.addResult(taskResult);
 							response.close();
 							break;
 						}

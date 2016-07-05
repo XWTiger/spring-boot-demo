@@ -18,6 +18,7 @@ import org.apache.http.impl.client.LaxRedirectStrategy;
 
 import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.domain.TaskStack;
+import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
 
 public class MSUtil {
 
@@ -190,5 +191,10 @@ public class MSUtil {
 			e.printStackTrace();
 		} 
 		return newString;
+	 }
+	 
+	 public static String[] getConfiguratedString(MirTemplate mirTemplate){
+		 String [] liStrings  = new String [3];
+		 return liStrings;
 	 }
 }

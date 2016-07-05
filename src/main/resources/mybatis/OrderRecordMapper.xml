@@ -19,7 +19,7 @@
   </delete>
 
   <select id="cout" resultType="Integer">
-    select count(*) from OrderRecord where appStackServiceId=#{serviceInstanceId}
+    select count(*) from OrderRecord where serviceTemplateId=#{serviceTemplateId}
   </select>
 
   <insert id="addRecord">

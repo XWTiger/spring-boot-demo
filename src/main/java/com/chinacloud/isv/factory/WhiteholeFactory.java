@@ -1,7 +1,10 @@
 package com.chinacloud.isv.factory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -154,5 +157,19 @@ public class WhiteholeFactory {
 		}
 		id = Integer.parseInt(value.substring(begin, end));
 		return id;
+	}
+	
+	public static CloseableHttpResponse callBackReturnResult(String result,Params params){
+		CloseableHttpResponse response = null;
+		Map<String,String> map = new HashMap<String,String >();
+		map.put("Content-Type", "application/json");
+		try {
+			String newResult = MSUtil.encode(result);
+			response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
+		} catch (Exception e) {
+			logger.error("suspend case,call back return result failed");
+			e.printStackTrace();
+		}
+		return response;
 	}
 }

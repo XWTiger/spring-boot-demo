@@ -100,7 +100,6 @@ public class MirRequestService {
 				riskStack.setRepeatTimes(0);
 				//3. add risk entity to risk table 
 				riskStackDao.addTask(riskStack);
-				
 				// return result json
 				System.out.println("envent type---------"+params.getData().getType()+"--------");
 				message = WhiteholeFactory.getAsynReturnJson(params.getData().getEventId(), params.getData().getType());

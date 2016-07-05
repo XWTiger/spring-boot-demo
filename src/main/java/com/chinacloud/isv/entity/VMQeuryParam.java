@@ -43,7 +43,10 @@ public class VMQeuryParam {
 		this.usrName = usrName;
 	}
 	private String instanceId;
-	
+	/**
+	 * whitehole will use the id ,when order case, it crate by my self.
+	 * @return
+	 */
 	public String getInstanceId() {
 		return instanceId;
 	}

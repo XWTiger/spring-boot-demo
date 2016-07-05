@@ -30,6 +30,7 @@ import com.chinacloud.isv.entity.mir.FarmInfo;
 import com.chinacloud.isv.entity.mir.Farms;
 import com.chinacloud.isv.entity.mir.ServerInfo;
 import com.chinacloud.isv.entity.mir.Servers;
+import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
 import com.chinacloud.isv.persistance.TaskResultDao;
 import com.chinacloud.isv.persistance.TaskStackDao;
 import com.chinacloud.isv.service.LoginService;
@@ -60,23 +61,30 @@ public class MirFactory {
 	public String orderService(int farmId,TaskStack taskStack,VMQeuryParam vp){
 		String startResult = null;
 		Params params = null;
+		MirTemplate mTemplate = null;
 		WhiteholeFactory wFactory = new WhiteholeFactory();
 		try {
 			params = wFactory.getEntity(Params.class, taskStack.getParams());
 			vp.setUsrName(params.getData().getCreator().getEmail());
 			vp.setModelFarmId(farmId);
 			vp.setSystem(params.getData().getPayload().getTenant().getName());
-			//TODO vp add service instance id
-			
 		} catch (Exception e) {
-			logger.error("order case,convert string to object failed.");
+			logger.error("order case,convert string to object failed. task id: "+taskStack.getId());
 			e.printStackTrace();
 		} 
-		//TODO get service template id 
-		if(!msTemplateService.getServiceStatus("")){
-			String result = WhiteholeFactory.getFailedMsg(params, "处理失败,服务模板已被禁用请稍后再试。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
+		//get service template id 
+		try {
+			mTemplate = wFactory.getEntity(MirTemplate.class, params.getData().getPayload().getOrder().getEditionCode());
+		} catch (Exception e3) {
+			logger.error("order case,convert mir template string to object failed. task id: "+taskStack.getId());
+			e3.printStackTrace();
+		} 
+		if(!msTemplateService.getServiceStatus(mTemplate.getServiceTemplateId())){
+			String result = WhiteholeFactory.getFailedMsg(params, "处理失败,服务模板已被禁用或者无法获取其状态,请稍后再试。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			return result;
 		}
+		//vp add service instance id
+		vp.setServiceTemplateId(mTemplate.getServiceTemplateId());
 		ResultObject robj= loginService.login("xiaweihu@chinacloud.com.cn", "!@#$QWERasdfzxcv*&POIUjklmbn");
 		//do mir request
 		logger.info("=====================申请事件,事件ID: "+params.getData().getEventId()+" ====================");

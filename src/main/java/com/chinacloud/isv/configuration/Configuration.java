@@ -21,6 +21,8 @@ public class Configuration {
 	private String userName;
 	@Value("${mir.password}")
 	private String password;
+	@Value("${mir.serviceTemplateUrl}")
+	private String serviceTemplateUrl;
 	
 	public String getUserName() {
 		return userName;
@@ -61,4 +63,13 @@ public class Configuration {
 	public void setTimeOut(int timeOut) {
 		this.timeOut = timeOut;
 	}
+
+	public String getServiceTemplateUrl() {
+		return serviceTemplateUrl;
+	}
+
+	public void setServiceTemplateUrl(String serviceTemplateUrl) {
+		this.serviceTemplateUrl = serviceTemplateUrl;
+	}
+	
 }
