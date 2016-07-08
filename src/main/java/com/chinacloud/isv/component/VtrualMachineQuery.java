@@ -53,6 +53,8 @@ public class VtrualMachineQuery extends Thread{
 	Configuration configuration;
 	@Autowired
 	OrderRecordDao orderRecordDao;
+	@Autowired
+	VirtualMachineStatusCheck virtualMachineStatusCheck;
 	
 	private static Set<VMQeuryParam> queryList = new HashSet<VMQeuryParam>();
 	private static final Logger logger = LogManager.getLogger(VtrualMachineQuery.class);
@@ -89,47 +91,97 @@ public class VtrualMachineQuery extends Thread{
 					headerMap.put("X-Requested-Token", vp.getSpecialToken());
 					Data data = new Data();
 					Process process = new Process();
-					if(2 == vp.getType()){//active case
-						logger.debug("type: active case");
-						logger.debug("------------------------------------");
-						//get all servers status 
-						CloseableHttpResponse qResult = null;
-						try {
-							qResult = MSUtil.httpClientGetUrl(headerMap, queryUrl);
-							String queryR = EntityUtils.toString(qResult.getEntity());
-							logger.debug("vm info:"+queryR);
-							WhiteholeFactory wf = new WhiteholeFactory();
-							Servers server = wf.getEntity(Servers.class,queryR);
-							qResult.close();
-							logger.debug("total :"+server.getTotal());
-							if(Integer.parseInt(server.getTotal()) > 0){
-								int count =0;
-								for (ServerInfo si : server.getData()) {
-									if(si.getStatus().equals("Running")){
-										count++;
-									}
-								}
-								logger.debug("Running number:"+count);
-								if(count == Integer.parseInt(server.getTotal())){
-									logger.info("all virtual machine are Running, farmid:"+vp.getcFarmId());
-									data.setSuccess(true);
-									data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE)+"处理成功。");
-									process.setEventId(vp.getEnventId());
-									process.setStatus("SUCCESS");
-									process.setInstanceId(vp.getInstanceId());
-									data.setProcess(process);
-									removeQueryTask(vp);
-								}else{
-									logger.warn("active case,running vitrual machine error,we need "+server.getTotal()+" machines,but it just have "+count);
-									if(timeOutCheck(vp)){
-										TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Active Case,Farm Id"+vp.getcFarmId()+" TIME OUT",0, "", "");
-										riskStackDao.deleteTask(vp.getTaskId());
-										taskResultDao.addResult(taskResult);
-										removeQueryTask(vp);
-									}
-									continue;
+					String requestResponse = null;
+					if(3 == vp.getType()){//reboot case
+						Map<String,String> map = new HashMap<String,String >();
+						map.put("Content-Type", "application/json;charset=utf-8");
+						boolean b = virtualMachineStatusCheck.isAllRunning(vp.getcFarmId(), vp.getxSecurityKey(), vp.getSpecialToken(), CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT+" ", vp.getTaskId());
+						if(b){
+							data.setSuccess(true);
+							data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT)+"处理成功。");
+							process.setEventId(vp.getEnventId());
+							process.setStatus("SUCCESS");
+							process.setInstanceId(vp.getInstanceId());
+							data.setProcess(process);
+							String result = null;
+							try {
+								result = WhiteholeFactory.getJsonString(data);
+							} catch (JsonProcessingException e) {
+								logger.error("reboot case,waiting result,convert object to string failed");
+								e.printStackTrace();
+							}
+							String newResult = MSUtil.encode(result);
+							TaskResult taskResult = null;
+							CloseableHttpResponse response = null;
+							try {
+								response = MSUtil.httpClientPostUrl(map, vp.getCallbackUrl(), newResult);
+							} catch (Exception e) {
+								taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", vp.getCallbackUrl(), "call back return result failed,errorMsg:"+e.getLocalizedMessage(), vp.getcFarmId(), vp.getCallbackUrl(), result);
+								//delete the row record of task 
+								riskStackDao.deleteTask(vp.getTaskId());
+								taskResultDao.addResult(taskResult);
+								removeQueryTask(vp);
+								e.printStackTrace();
+							}
+							try {
+								requestResponse = EntityUtils.toString(response.getEntity());
+							} catch (Exception e) {
+								logger.error("reboot case,convert result entity to string failed");
+								e.printStackTrace();
+							} 
+							taskResult = this.getResultInstance(vp.getTaskId(), "SUCCESS", vp.getCallbackUrl(), requestResponse, vp.getcFarmId(), vp.getCallbackUrl(), result);
+							riskStackDao.deleteTask(vp.getTaskId());
+							taskResultDao.addResult(taskResult);
+							removeQueryTask(vp);
+						}else{
+							if(!timeOutCheck(vp)){
+								TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Reboot Case,Farm Id="+vp.getcFarmId()+" TIME OUT,", vp.getcFarmId(), "", "");
+								riskStackDao.deleteTask(vp.getTaskId());
+								taskResultDao.addResult(taskResult);
+								removeQueryTask(vp);
+							}
+						}
+					}else if(2 == vp.getType()){//active case
+					logger.debug("type: active case");
+					logger.debug("------------------------------------");
+					//get all servers status 
+					CloseableHttpResponse qResult = null;
+					try {
+						qResult = MSUtil.httpClientGetUrl(headerMap, queryUrl);
+						String queryR = EntityUtils.toString(qResult.getEntity());
+						logger.debug("vm info:"+queryR);
+						WhiteholeFactory wf = new WhiteholeFactory();
+						Servers server = wf.getEntity(Servers.class,queryR);
+						qResult.close();
+						logger.debug("total :"+server.getTotal());
+						if(Integer.parseInt(server.getTotal()) > 0){
+							int count =0;
+							for (ServerInfo si : server.getData()) {
+								if(si.getStatus().equals("Running")){
+									count++;
 								}
 							}
+							logger.debug("Running number:"+count);
+							if(count == Integer.parseInt(server.getTotal())){
+								logger.info("all virtual machine are Running, farmid:"+vp.getcFarmId());
+								data.setSuccess(true);
+								data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE)+"处理成功。");
+								process.setEventId(vp.getEnventId());
+								process.setStatus("SUCCESS");
+								process.setInstanceId(vp.getInstanceId());
+								data.setProcess(process);
+								removeQueryTask(vp);
+							}else{
+								logger.warn("active case,running vitrual machine error,we need "+server.getTotal()+" machines,but it just have "+count);
+								if(timeOutCheck(vp)){
+									TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Active Case,Farm Id"+vp.getcFarmId()+" TIME OUT",0, "", "");
+									riskStackDao.deleteTask(vp.getTaskId());
+									taskResultDao.addResult(taskResult);
+									removeQueryTask(vp);
+								}
+								continue;
+							}
+						}
 						} catch (Exception e1) {
 							logger.error("when active farm stack id:"+vp.getTaskId()+" falied,because of query virtual machine number error");
 							e1.printStackTrace();
@@ -396,6 +448,7 @@ public class VtrualMachineQuery extends Thread{
 								try {
 									callbackResponse = MSUtil.httpClientPostUrl(map,vp.getCallbackUrl(), newResult);
 								} catch (Exception e) {
+									logger.error("order case,response order result failed");
 									TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "POST", "", vp.getcFarmId(), vp.getCallbackUrl(), e.getLocalizedMessage());
 									//delete the row record of task 
 									riskStackDao.deleteTask(vp.getTaskId());
@@ -464,7 +517,11 @@ public class VtrualMachineQuery extends Thread{
 		}
 		return taskList;
 	}
-	
+	/**
+	 * 
+	 * @param vmQeuryParam
+	 * @return time out return true
+	 */
 	private boolean timeOutCheck(VMQeuryParam vmQeuryParam){
 		boolean b = false;
 		long time = new Date().getTime() - vmQeuryParam.getBeginTime();

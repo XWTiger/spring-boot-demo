@@ -62,6 +62,7 @@ public class LoginService {
 	            String strRet = EntityUtils.toString(resp.getEntity());
 	            WhiteholeFactory whiteholeFactory = new WhiteholeFactory();
 	            rObject = whiteholeFactory.getEntity(ResultObject.class, strRet);
+	            logger.debug("securtiy key ======>"+secureKey[0].getValue());
 	            rObject.setSecureKey(secureKey[0].getValue());
 	            System.out.println("login --->strRet:"+strRet);
 	        } catch ( Exception e) {

@@ -47,7 +47,7 @@ public class TaskConsumeService {
 		
 		ArrayList<TaskStack> RiskList = riskStackDao.getTasks();
 		// lock task item
-		
+		//logger.debug("-------the tast size:"+RiskList.size()+"----------");
 		//consume task and insert result
 		for (TaskStack taskStack : RiskList) {
 		
@@ -168,12 +168,13 @@ public class TaskConsumeService {
 							CloseableHttpResponse response = WhiteholeFactory.callBackReturnResult(suspendResult, params);
 							if(null == response){
 								logger.error("suspend case, call back return result failed");
+							}else{
+								HttpEntity entity = response.getEntity();
+								String comebackResult = EntityUtils.toString(entity);
+								logger.info("response entity content--->"+comebackResult);
+								//add result
+								taskResult = MSUtil.getTaskResult(1, taskStack, suspendResult, comebackResult);
 							}
-							HttpEntity entity = response.getEntity();
-							String comebackResult = EntityUtils.toString(entity);
-							logger.info("response entity content--->"+comebackResult);
-							//add result
-							taskResult = MSUtil.getTaskResult(1, taskStack, suspendResult, comebackResult);
 							riskStackDao.deleteTask(taskStack.getId());
 							taskResultDao.addResult(taskResult);
 							response.close();
@@ -204,7 +205,59 @@ public class TaskConsumeService {
 								vmQeuryParam.setBeginTime(new Date().getTime());
 								vtrualMachineQuery.addQueryTask(vmQeuryParam);
 								vtrualMachineQuery.start();
+							}else{
+								CloseableHttpResponse response = WhiteholeFactory.callBackReturnResult(result, params);
+								if(null == response){
+									logger.error("suspend case, call back return result failed");
+								}else{
+									HttpEntity entity = response.getEntity();
+									String comebackResult = EntityUtils.toString(entity);
+									logger.info("response entity content--->"+comebackResult);
+									//add result
+									taskResult = MSUtil.getTaskResult(1, taskStack, result, comebackResult);
+								}
+								riskStackDao.deleteTask(taskStack.getId());
+								taskResultDao.addResult(taskResult);
+								response.close();
 							}
+							break;
+						}
+						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT:{
+							String instanceId = params.getData().getPayload().getInstance().getInstanceId();
+							VMQeuryParam vmQeuryParam = new VMQeuryParam();
+							logger.debug("REBOOT　CASE: the instance id---->"+instanceId);
+							TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
+							if(null == tr){
+								logger.error("when do active virtual machine case,get clone farm id failed because of database return null");
+							}
+							result = mirFactory.rebootService(String.valueOf(tr.getcFarmId()), params, taskStack,vmQeuryParam);
+							if(result.contains("process")){
+								Map<String,String> map = new HashMap<String,String >();
+								map.put("Content-Type", "application/json;charset=utf-8");
+								String newResult = MSUtil.encode(result);
+								try {
+									CloseableHttpResponse rebootR = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
+									logger.info("reboot case,error message report, response msg:"+EntityUtils.toString(rebootR.getEntity()));
+								} catch (Exception e) {
+									logger.error("order case,response order result failed");
+									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage());
+									//delete the row record of task 
+									riskStackDao.deleteTask(taskStack.getId());
+									taskResultDao.addResult(taskResult2);
+									e.printStackTrace();
+								}
+							}else{
+								vmQeuryParam.setCallbackUrl(taskStack.getCallBackUrl());
+								vmQeuryParam.setcFarmId(tr.getcFarmId());
+								vmQeuryParam.setEnventId(params.getData().getEventId());
+								vmQeuryParam.setTaskId(taskStack.getId());
+								vmQeuryParam.setType(3);
+								vmQeuryParam.setInstanceId(instanceId);
+								vmQeuryParam.setBeginTime(new Date().getTime());
+								vtrualMachineQuery.addQueryTask(vmQeuryParam);
+								vtrualMachineQuery.start();
+							}
+							
 							break;
 						}
 						default:{

@@ -1,5 +1,6 @@
 package com.chinacloud.isv.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -43,6 +44,28 @@ public class OrderRecordService {
         map.put("list", list);
 		return map;
 	}
+	/**
+	 * get service template instance number 
+	 * @param list
+	 * @return hash map
+	 */
+	public ArrayList<HashMap<Object, Object>> getSTNumber(String [] list){
+		if(null == list){
+			throw new IllegalArgumentException("服务模板ID列表为空");
+		}
+		ArrayList<HashMap<Object, Object>> mapList = new ArrayList<>();
+		HashMap<Object, Object> map = null;
+		for (String string : list) {
+			map =new HashMap<>();
+			map.put("id", string);
+			map.put("count", orderRecordDao.cout(string));
+			mapList.add(map);
+		}
+		return mapList;
+	}
+	
+	
+	
 	/**
 	 * delete order service instance by cloned farm id
 	 * @param cFarmId

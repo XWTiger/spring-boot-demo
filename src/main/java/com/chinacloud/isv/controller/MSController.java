@@ -1,10 +1,12 @@
 package com.chinacloud.isv.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,5 +41,23 @@ public class MSController {
 			@RequestParam(value="order", required=false) String order){
 		logger.info("=======query order service instance====serviece id:"+serviceId);
 		return orderRecordService.getRecordList(serviceId, page, pageSize, orderBy, order);
+	}
+	
+	@ResponseBody
+	@RequestMapping(value="/instances",method=RequestMethod.POST)
+	public ArrayList<HashMap<Object, Object>>  getServiceTemplateInstanceNum(@RequestBody HashMap<String, Object> templatIdList){
+		@SuppressWarnings("unchecked")
+		ArrayList<String> list =  (ArrayList<String>) templatIdList.get("templatIdList");
+		if(null == list){
+			throw new IllegalArgumentException("服务模板ID为空");
+		}
+		String[] tlist = new String[list.size()];
+		int i = 0;
+		for (String string : list) {
+			tlist[i] = string;
+			i++;
+			logger.debug("id:"+string);
+		}
+		return orderRecordService.getSTNumber(tlist);
 	}
 }

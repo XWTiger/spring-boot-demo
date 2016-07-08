@@ -11,5 +11,5 @@ public interface OrderRecordDao {
             @Param("limit") int limit, @Param("orderBy") String orderBy, @Param("order") String order);
 	public Integer deleteByCloneFarmId(int clonedFarmId);
 	public Integer addRecord(OrderRecord or);
-	public Integer cout(String serviceInstanceId);
+	public Integer cout(String serviceTemplateId);
 }

@@ -158,7 +158,12 @@ public class WhiteholeFactory {
 		id = Integer.parseInt(value.substring(begin, end));
 		return id;
 	}
-	
+	/**
+	 * call back return the result of whitehole
+	 * @param result
+	 * @param params
+	 * @return
+	 */
 	public static CloseableHttpResponse callBackReturnResult(String result,Params params){
 		CloseableHttpResponse response = null;
 		Map<String,String> map = new HashMap<String,String >();
@@ -167,7 +172,7 @@ public class WhiteholeFactory {
 			String newResult = MSUtil.encode(result);
 			response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
 		} catch (Exception e) {
-			logger.error("suspend case,call back return result failed");
+			logger.error("call back return result failed");
 			e.printStackTrace();
 		}
 		return response;

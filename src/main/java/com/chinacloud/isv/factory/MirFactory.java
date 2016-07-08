@@ -33,6 +33,7 @@ import com.chinacloud.isv.entity.mir.Servers;
 import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
 import com.chinacloud.isv.persistance.TaskResultDao;
 import com.chinacloud.isv.persistance.TaskStackDao;
+import com.chinacloud.isv.service.ConfigurateFarmService;
 import com.chinacloud.isv.service.LoginService;
 import com.chinacloud.isv.service.MSTemplateService;
 import com.chinacloud.isv.service.UnlockService;
@@ -56,6 +57,8 @@ public class MirFactory {
 	UnlockService unlockService;
 	@Autowired
 	MSTemplateService msTemplateService;
+	@Autowired
+	ConfigurateFarmService configurateFarmService;
 	private static final Logger logger = LogManager.getLogger(MirFactory.class);
 	//every request Exception should be catch and return the result
 	public String orderService(int farmId,TaskStack taskStack,VMQeuryParam vp){
@@ -207,7 +210,10 @@ public class MirFactory {
 		/*-------------------*/
 		//TODO add farm config operations
 		/*-------------------*/
-		
+		if(!configurateFarmService.configClonedFarm(mTemplate, cloneFarmId, robj)){
+			String result = WhiteholeFactory.getFailedMsg(params,"处理失败,原因是配置克隆应用堆栈失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
+			return result;
+		}
 		//service start
 		String farmStartUrl = configuration.getMirConnectUrl()+"farms/xLaunch";
 		List<NameValuePair> params_list_2 = new ArrayList<NameValuePair>();
@@ -470,7 +476,8 @@ public class MirFactory {
 		if(total == count){
 			result = CaseProvider.ACTIVE_FIRST_STEP; 
 		}else{
-			logger.error("active number less than total");
+			logger.warn("active number less than total");
+			result = WhiteholeFactory.getFailedMsg(p, "处理失败，原因是激活虚拟机数量异常", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
 		}
 		return result;
 	}
@@ -568,6 +575,85 @@ public class MirFactory {
 			}
 		}
 		return result;
+	}
+	
+	public String rebootService(String cFarmId,Params p,TaskStack taskStack,VMQeuryParam vp){
+		String rebootUrl =configuration.getMirConnectUrl()+"servers/xServerRebootServers";
+		String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+cFarmId+"&imageId=&limit=10&page=1&query=&start=0";
+		WhiteholeFactory wFactory = new WhiteholeFactory();
+		Map<String,String> headerMap = new HashMap<String,String>();
+		ResultObject robj= loginService.login(null,null);
+		headerMap.put("X-Secure-Key", robj.getSecureKey());
+		headerMap.put("X-Requested-Token", robj.getSpecialToken());
+		vp.setxSecurityKey(robj.getSecureKey());
+		vp.setSpecialToken(vp.getxSecurityKey());
+		CloseableHttpResponse qResult = null;
+		try {
+			qResult = MSUtil.httpClientGetUrl(headerMap, queryUrl);
+		} catch (Exception e1) {
+			logger.error("reboot case,when get farm servers info list ,request mir plate failed. errorMsg:"+e1.getLocalizedMessage());
+			unlockService.unlockMission(taskStack);
+			e1.printStackTrace();
+		}
+		String serverInfo = null;
+		try {
+			serverInfo = EntityUtils.toString(qResult.getEntity());
+		} catch (Exception e) {
+			logger.error("reboot case,convert server entity to string failed.task id: "+taskStack.getId()+" errorMsg:"+e.getLocalizedMessage());
+			e.printStackTrace();
+		}
+		Servers s = null;
+		try {
+			s= wFactory.getEntity(Servers.class, serverInfo);
+		} catch (Exception e1) {
+			logger.error("reboot case,convert server info string to object failed.task id: "+taskStack.getId()+" errorMsg:"+e1.getLocalizedMessage());
+			e1.printStackTrace();
+		} 
+		int flagNotRunning = 0;
+		String servers = "[";
+		ArrayList<ServerInfo> sList = s.getData();
+		for (int i = 0 ;i < Integer.parseInt(s.getTotal()); i++) {
+			if(!sList.get(i).equals("Running")){
+				flagNotRunning++;
+			}
+			if((i + 1) == Integer.parseInt(s.getTotal())){
+				servers = servers+"\""+sList.get(i).getServer_id()+"\"]";
+			}else{
+				servers = servers+"\""+sList.get(i).getServer_id()+"\",";
+			}
+		}
+		if(flagNotRunning > 0){
+			logger.warn("reboot case,there is a virtual machine have not running status");
+			String result = WhiteholeFactory.getFailedMsg(p,  "处理失败,原因是对应应用堆栈的虚拟机有存在非运行状态。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT);
+			return result;
+		}
+		
+		try {
+			qResult.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		//reboot all virtual machine
+		List<NameValuePair> params_list = new ArrayList<NameValuePair>();
+		params_list.add(new BasicNameValuePair("servers",servers));
+		params_list.add(new BasicNameValuePair("type","soft"));
+		CloseableHttpResponse rebootR = null;
+		try {
+			rebootR = MSUtil.httpClientPostUrl(headerMap, rebootUrl, params_list);
+		} catch (Exception e1) {
+			logger.error("reboot case,task id: "+taskStack.getId()+" reboot request failed,errorMsg:"+e1.getLocalizedMessage());
+			unlockService.unlockMission(taskStack);
+			e1.printStackTrace();
+		}
+		String rebootResult = null;
+		try {
+			rebootResult = EntityUtils.toString(rebootR.getEntity());
+		} catch (Exception e) {
+			logger.error("reboot case,convert reboot result entity to string failed. task id: "+taskStack.getId()+" errorMsg:"+e.getLocalizedMessage());
+			e.printStackTrace();
+		} 
+		return rebootResult;
 	}
 	
 	public boolean removeCloneFarm(String cFarmId,String sercurity,String token){

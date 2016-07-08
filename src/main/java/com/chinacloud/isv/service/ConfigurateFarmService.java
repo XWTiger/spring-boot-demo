@@ -1,10 +1,14 @@
 package com.chinacloud.isv.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +18,7 @@ import org.springframework.stereotype.Service;
 import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.entity.ResultObject;
 import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
+import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.util.MSUtil;
 
 @Service
@@ -33,6 +38,7 @@ public class ConfigurateFarmService {
 	 */
 	public boolean configClonedFarm(MirTemplate mirTemplate,String cloneFarmId,ResultObject robj){
 		boolean b = true;
+		String [] confList = null;
 		if(null == mirTemplate){
 			logger.error("order case,service template info is null");
 			b = false;
@@ -48,7 +54,16 @@ public class ConfigurateFarmService {
 			infoResponse = MSUtil.httpClientGetUrl(headers, infoUrl);
 			String conf = EntityUtils.toString(infoResponse.getEntity());
 			logger.info("cloned configuration: "+conf);
-			
+			confList = MSUtil.getConfiguratedString(mirTemplate, conf);
+			if(null == confList){
+				logger.error("get configuration failed,please get connection with manager");
+				b = false;
+				return b;
+			}
+			logger.debug("new configuration :");
+			for (String string : confList) {
+				logger.debug(string);
+			}
 		} catch (Exception e) {
 			b = false;
 			logger.error("get cloned farm configuration failed");
@@ -63,7 +78,34 @@ public class ConfigurateFarmService {
 		}
 		//save configuration
 		String saveConfUrl = configuration.getMirConnectUrl()+"farms/builder/xBuild";
+		List<NameValuePair> params_list = new ArrayList<NameValuePair>();
+		params_list.add(new BasicNameValuePair("farmId",String.valueOf(cloneFarmId)));
+		params_list.add(new BasicNameValuePair("farm",confList[0]));
+		params_list.add(new BasicNameValuePair("roles",confList[1]));
+		params_list.add(new BasicNameValuePair("v2","1"));
+		params_list.add(new BasicNameValuePair("changed",confList[2]));
+		CloseableHttpResponse saveResponse = null;
+		try {
+			saveResponse = MSUtil.httpClientPostUrl(headers, saveConfUrl, params_list);
+			String saveR = EntityUtils.toString(saveResponse.getEntity());
+			logger.info("save farm configuration response:"+saveR);
+			WhiteholeFactory whiteholeFactory = new WhiteholeFactory();
+			ResultObject rObject = whiteholeFactory.getEntity(ResultObject.class, saveR);
+			if(!rObject.isSuccess()){
+				b = false;
+				return b;
+			}
+		} catch (Exception e) {
+			b = false;
+			logger.error("save farm configuration to mir falied,errorMsg:"+e.getLocalizedMessage());
+			e.printStackTrace();
+			return b;
+		}
+		try {
+			saveResponse.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		return b;
 	}
-
 }

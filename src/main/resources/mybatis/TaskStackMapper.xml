@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.chinacloud.isv.persistance.TaskStackDao">
     <select id="getTasks" resultType="com.chinacloud.isv.domain.TaskStack">
-        select * from TaskStack where 1=1 limit 20 
+        select * from TaskStack where lockTask = 0 limit 20 
     </select>
     <insert id="addTask" parameterType="com.chinacloud.isv.domain.TaskStack">
         insert into TaskStack(id,requestUrl,requestMethod,params,callBackUrl,lockTask,farmId,addTime,repeatTimes) 

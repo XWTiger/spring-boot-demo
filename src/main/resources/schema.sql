@@ -1,4 +1,11 @@
-
+/*
+MySQL Data Transfer
+Source Host: localhost
+Source Database: mir-service-broker
+Target Host: localhost
+Target Database: mir-service-broker
+Date: 2016/7/8 9:44:03
+*/
 create table if not exists TaskStack
 (
    id                       varchar(36) not null,
@@ -8,7 +15,7 @@ create table if not exists TaskStack
    callBackUrl              varchar(255) not null,
    lockTask                     tinyint,
    farmId                   int(10),
-   addTime                  timestamp NOT NULL,
+   addTime                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    repeatTimes int(10) unsigned zerofill NOT NULL DEFAULT '0000000000',
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -19,13 +26,12 @@ create table if not exists TaskResult
    cFarmId                  int(10),
    requestMethod            varchar(255) not null,
    requestUrl               text not null,
-   params                   text not null,/*回调返回给外部系统的参数，是mir相关处理的结果*/
+   params                   text not null,
    resultStatus             varchar(64) not null,
-   info                     text,/*如果回调返回结果失败存放错误信息，否则为空*/
-   addTime                  timestamp NOT NULL,
+   info                     text,
+   addTime                  timestamp  NOT NULL DEFAULT CURRENT_TIMESTAMP,
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 create table if not exists OrderRecord
 (
    id                       varchar(36) not null,
@@ -33,7 +39,8 @@ create table if not exists OrderRecord
    modelFarmId              int(10) not null,
    cFarmId                  int(10) not null,
    usrName                  varchar(255),
-   appStackServiceId        varchar(255),
-   addTime                  timestamp NOT NULL,
+   serviceTemplateId       varchar(255),
+   addTime                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+

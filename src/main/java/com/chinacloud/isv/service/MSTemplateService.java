@@ -39,7 +39,7 @@ public class MSTemplateService {
 			String reponseStr =EntityUtils.toString(response.getEntity());
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode node = mapper.readTree(reponseStr);
-			int status = node.get("status").asInt();
+			int status = node.get("templateStatus").asInt();
 			if(0 == status){
 				b = false;
 			}

@@ -8,6 +8,8 @@ public class ResultObject {
 	private String errorMessage = "";
 	private String successMessage = "";
 	private String secureKey = "";
+	private String farmId;
+	private boolean isNewFarm;
 	
 	public boolean isSuccess() {
 		return success;
@@ -44,5 +46,17 @@ public class ResultObject {
 	}
 	public void setSecureKey(String secureKey) {
 		this.secureKey = secureKey;
+	}
+	public String getFarmId() {
+		return farmId;
+	}
+	public void setFarmId(String farmId) {
+		this.farmId = farmId;
+	}
+	public boolean isNewFarm() {
+		return isNewFarm;
+	}
+	public void setNewFarm(boolean isNewFarm) {
+		this.isNewFarm = isNewFarm;
 	}
 }
