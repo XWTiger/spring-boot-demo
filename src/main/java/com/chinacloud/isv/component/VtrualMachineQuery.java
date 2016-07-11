@@ -95,7 +95,7 @@ public class VtrualMachineQuery extends Thread{
 					if(3 == vp.getType()){//reboot case
 						Map<String,String> map = new HashMap<String,String >();
 						map.put("Content-Type", "application/json;charset=utf-8");
-						boolean b = virtualMachineStatusCheck.isAllRunning(vp.getcFarmId(), vp.getxSecurityKey(), vp.getSpecialToken(), CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT+" ", vp.getTaskId());
+						boolean b = virtualMachineStatusCheck.isAllInOneStatus(vp.getcFarmId(), vp.getxSecurityKey(), vp.getSpecialToken(), CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT+" ", vp.getTaskId(),"Running");
 						if(b){
 							data.setSuccess(true);
 							data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT)+"处理成功。");

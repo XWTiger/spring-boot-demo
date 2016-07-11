@@ -52,6 +52,7 @@ public class UnlockService {
 				taskResultDao.addResult(taskResult);
 			}else{
 				repeatTimes++;
+				taskStackDao.unLockTask(ts.getId());
 				taskStackDao.addRepeageTimesById(ts.getId(), repeatTimes);
 			}
 		}

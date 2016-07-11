@@ -24,8 +24,17 @@ public class VirtualMachineStatusCheck {
 	private static final Logger logger = LogManager.getLogger(TaskConsumeService.class);
 	@Autowired
 	Configuration configuration;
-	
-	public boolean isAllRunning(int farmId,String securtyKey,String specialToken,String caseType,String taskId){
+	/**
+	 * check if all of the virtual machine are the saem status
+	 * @param farmId
+	 * @param securtyKey
+	 * @param specialToken
+	 * @param caseType
+	 * @param taskId
+	 * @param status
+	 * @return
+	 */
+	public boolean isAllInOneStatus(int farmId,String securtyKey,String specialToken,String caseType,String taskId,String status){
 		boolean b = true;
 		String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+farmId+"&imageId=&limit=10&page=1&query=&start=0";
 		WhiteholeFactory wFactory = new WhiteholeFactory();
@@ -63,7 +72,7 @@ public class VirtualMachineStatusCheck {
 		String servers = "[";
 		ArrayList<ServerInfo> sList = s.getData();
 		for (int i = 0 ;i < Integer.parseInt(s.getTotal()); i++) {
-			if(!sList.get(i).equals("Running")){
+			if(!sList.get(i).equals(status)){
 				flagNotRunning++;
 			}
 			if((i + 1) == Integer.parseInt(s.getTotal())){
@@ -73,7 +82,7 @@ public class VirtualMachineStatusCheck {
 			}
 		}
 		if(flagNotRunning > 0){
-			logger.warn(caseType + "query status,there is a virtual machine have not running status");
+			logger.warn(caseType + "query status,there is a virtual machine have other status");
 			b = false;
 		}
 		
