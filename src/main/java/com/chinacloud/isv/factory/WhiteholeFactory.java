@@ -101,6 +101,8 @@ public class WhiteholeFactory {
 		//data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是删除应用堆栈SSH KEY 失败。");
 		data.setMessage(MSUtil.getChineseName(caseType)+msgTail);
 		process.setEventId(p.getData().getEventId());
+		logger.debug("the case===>"+caseType);
+		if(!caseType.equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER))
 		process.setInstanceId(p.getData().getPayload().getInstance().getInstanceId());
 		process.setStatus("FAILED");
 		data.setProcess(process);
@@ -141,7 +143,7 @@ public class WhiteholeFactory {
 	 * get farmId by parameters
 	 * @param p
 	 * @return bigger than 0 is valid value
-	 */
+	 *//*
 	public static int getFarmId(Params p){
 		int id = 0;
 		String value = p.getData().getPayload().getOrder().getEditionCode();
@@ -157,7 +159,7 @@ public class WhiteholeFactory {
 		}
 		id = Integer.parseInt(value.substring(begin, end));
 		return id;
-	}
+	}*/
 	/**
 	 * call back return the result of whitehole
 	 * @param result

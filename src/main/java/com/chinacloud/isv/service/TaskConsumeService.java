@@ -40,6 +40,8 @@ public class TaskConsumeService {
 	MirFactory mirFactory;
 	@Autowired
 	VtrualMachineQuery vtrualMachineQuery;
+	@Autowired
+	UnlockService unlockService;
 	
 	@Scheduled(fixedRate = 1000)
 	public void riskRunning(){
@@ -79,9 +81,10 @@ public class TaskConsumeService {
 									String newResult = MSUtil.encode(result);
 									CloseableHttpResponse response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
 									HttpEntity entity = response.getEntity();
-									logger.info("response entity content--->"+EntityUtils.toString(entity));
+									String callBackResponse = EntityUtils.toString(entity);
+									logger.info("response entity content--->"+callBackResponse);
 									response.close();
-									taskResult = MSUtil.getTaskResult(1, taskStack, result, EntityUtils.toString(entity));
+									taskResult = MSUtil.getTaskResult(1, taskStack, result,callBackResponse,vParam.getcFarmId());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult);
@@ -89,7 +92,7 @@ public class TaskConsumeService {
 							} catch (Exception e) {
 								logger.error("Order case,Consume task error\n"+e.getLocalizedMessage());
 								//unlock the task
-								riskStackDao.unLockTask(taskStack.getId());
+								unlockService.unlockMission(taskStack);
 								e.printStackTrace();
 							}
 							break;
@@ -102,6 +105,14 @@ public class TaskConsumeService {
 							TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
 							if(null == tr){
 								logger.error("when do cancle case,get clone farm id failed because of database return null");
+								String  Response = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是克隆的应用堆栈已经被删除。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+								CloseableHttpResponse cancelResponse  = WhiteholeFactory.callBackReturnResult(Response, params);
+								HttpEntity entity = cancelResponse.getEntity();
+								String comebackResult = EntityUtils.toString(entity);
+								logger.info("response entity content--->"+comebackResult);
+								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,-1);
+								riskStackDao.deleteTask(taskStack.getId());
+								taskResultDao.addResult(taskResult);
 							}
 							result = mirFactory.cancleService(params,tr.getcFarmId(),vmQeuryParam,taskStack);
 							logger.info("cancle case, call back params---->"+result);
@@ -126,7 +137,7 @@ public class TaskConsumeService {
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
 								//add result
-								taskResult = MSUtil.getTaskResult(0, taskStack, result,comebackResult);
+								taskResult = MSUtil.getTaskResult(0, taskStack, result,comebackResult,tr.getcFarmId());
 								//delete the row record of task and the order case result
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.deleteResultById(instanceId);
@@ -134,7 +145,7 @@ public class TaskConsumeService {
 								} catch (Exception e) {
 									logger.error("Consume task error\n"+e.getMessage());
 									//add result
-									taskResult = MSUtil.getTaskResult(0, taskStack, result,"call back response cancle case success result faild ,error info:"+e.getLocalizedMessage());
+									taskResult = MSUtil.getTaskResult(0, taskStack, result,e.getLocalizedMessage(),tr.getcFarmId());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult);
@@ -154,8 +165,8 @@ public class TaskConsumeService {
 								CloseableHttpResponse response  = WhiteholeFactory.callBackReturnResult(suspendResult, params);
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
-								logger.info("response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult);
+								logger.info("suspend case,response entity content--->"+comebackResult);
+								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult,-1);
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 								break;
@@ -173,7 +184,7 @@ public class TaskConsumeService {
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
 								//add result
-								taskResult = MSUtil.getTaskResult(1, taskStack, suspendResult, comebackResult);
+								taskResult = MSUtil.getTaskResult(1, taskStack, suspendResult, comebackResult,tr.getcFarmId());
 							}
 							riskStackDao.deleteTask(taskStack.getId());
 							taskResultDao.addResult(taskResult);
@@ -190,6 +201,14 @@ public class TaskConsumeService {
 							TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
 							if(null == tr){
 								logger.error("when do active virtual machine case,get clone farm id failed because of database return null");
+								String  activeResponse = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是克隆的应用堆栈已经被删除。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+								CloseableHttpResponse response  = WhiteholeFactory.callBackReturnResult(activeResponse, params);
+								HttpEntity entity = response.getEntity();
+								String comebackResult = EntityUtils.toString(entity);
+								logger.info("response entity content--->"+comebackResult);
+								taskResult = MSUtil.getTaskResult(0, taskStack, activeResponse, comebackResult,-1);
+								riskStackDao.deleteTask(taskStack.getId());
+								taskResultDao.addResult(taskResult);
 							}
 							result = mirFactory.activeService(params,tr.getcFarmId(),vmQeuryParam,taskStack);
 							if(null == result){
@@ -214,7 +233,7 @@ public class TaskConsumeService {
 									String comebackResult = EntityUtils.toString(entity);
 									logger.info("response entity content--->"+comebackResult);
 									//add result
-									taskResult = MSUtil.getTaskResult(1, taskStack, result, comebackResult);
+									taskResult = MSUtil.getTaskResult(1, taskStack, result, comebackResult,tr.getcFarmId());
 								}
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
@@ -229,6 +248,14 @@ public class TaskConsumeService {
 							TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
 							if(null == tr){
 								logger.error("when do active virtual machine case,get clone farm id failed because of database return null");
+								String  Response = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是克隆的应用堆栈已经被删除。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+								CloseableHttpResponse response  = WhiteholeFactory.callBackReturnResult(Response, params);
+								HttpEntity entity = response.getEntity();
+								String comebackResult = EntityUtils.toString(entity);
+								logger.info("response entity content--->"+comebackResult);
+								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,-1);
+								riskStackDao.deleteTask(taskStack.getId());
+								taskResultDao.addResult(taskResult);
 							}
 							result = mirFactory.rebootService(String.valueOf(tr.getcFarmId()), params, taskStack,vmQeuryParam);
 							if(result.contains("process")){
@@ -240,7 +267,7 @@ public class TaskConsumeService {
 									logger.info("reboot case,error message report, response msg:"+EntityUtils.toString(rebootR.getEntity()));
 								} catch (Exception e) {
 									logger.error("order case,response order result failed");
-									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage());
+									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage(),tr.getcFarmId());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult2);

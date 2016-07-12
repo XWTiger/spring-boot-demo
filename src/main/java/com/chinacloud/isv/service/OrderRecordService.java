@@ -24,10 +24,10 @@ public class OrderRecordService {
 	 * @return ArrayList<OrderRecord>
 	 */
 	public HashMap<Object, Object> getRecordList(String serviceTemplateId,int page, int pageSize, String orderBy, String order){
-		if (page < 0) {
+		if (page <= 0) {
             throw new IllegalArgumentException("参数（page）不合法");
         }
-        if (pageSize < 0) {
+        if (pageSize <= 0) {
             throw new IllegalArgumentException("参数（pageSize）不合法");
         }
         if(null == orderBy || "".equals(orderBy)){
@@ -38,9 +38,10 @@ public class OrderRecordService {
         }
         double num = orderRecordDao.cout(serviceTemplateId);
         int pageNumber =  (int) Math.ceil(num/pageSize);
-        List<OrderRecord> list = orderRecordDao.getList(serviceTemplateId, page * pageSize, pageSize, orderBy, order);
+        List<OrderRecord> list = orderRecordDao.getList(serviceTemplateId, (page - 1) * pageSize, pageSize, orderBy, order);
         HashMap<Object, Object> map = new HashMap<>();
-        map.put("total", pageNumber);
+        map.put("pages", pageNumber);
+        map.put("totalCount",(int)num);
         map.put("list", list);
 		return map;
 	}

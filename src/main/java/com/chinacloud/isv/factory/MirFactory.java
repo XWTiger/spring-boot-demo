@@ -491,10 +491,14 @@ public class MirFactory {
 		TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
 		if(null == tr){
 			logger.error("when do query case,get clone farm id failed because of database return null");
+			result = WhiteholeFactory.getFailedMsg(p, "处理失败,原因是获取不到对应实例的处理结果,请联系管理员", CaseProvider.EVENT_TYPE_SUBSCRIPTION_QUERY);
+			result = MSUtil.encode(result);
+			return result;
 		}
 		//task result the order mission is time out
-		if(tr.getErrorInfo().contains(CaseProvider.STATUS_TIME_OUT)){
-			
+		logger.debug("errorInfo is null?"+null == tr.getInfo());
+		if(tr.getInfo().contains(CaseProvider.STATUS_TIME_OUT)){
+			logger.warn("task result id:"+tr.getId()+",farm id:"+tr.getcFarmId()+"task time out");
 		}
 		com.chinacloud.isv.entity.callbackparams.Process process = new com.chinacloud.isv.entity.callbackparams.Process();
 		Map<String,String> headerMap = new HashMap<String,String>();

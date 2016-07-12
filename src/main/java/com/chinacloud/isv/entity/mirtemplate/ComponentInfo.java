@@ -5,7 +5,7 @@ public class ComponentInfo {
 	private String componentName;
 	private String unitFlavorId;
 	private String unitInstanceNumber;
-	private String componentNet;
+	private String[] componentNet;
 	
 	public String getComponentName() {
 		return componentName;
@@ -25,10 +25,11 @@ public class ComponentInfo {
 	public void setUnitInstanceNumber(String unitInstanceNumber) {
 		this.unitInstanceNumber = unitInstanceNumber;
 	}
-	public String getComponentNet() {
+	public String[] getComponentNet() {
 		return componentNet;
 	}
-	public void setComponentNet(String componentNet) {
+	public void setComponentNet(String[] componentNet) {
 		this.componentNet = componentNet;
 	}
+	
 }

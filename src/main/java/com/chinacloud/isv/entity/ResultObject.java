@@ -56,7 +56,8 @@ public class ResultObject {
 	public boolean isNewFarm() {
 		return isNewFarm;
 	}
-	public void setNewFarm(boolean isNewFarm) {
+	public void setIsNewFarm(boolean isNewFarm) {
 		this.isNewFarm = isNewFarm;
 	}
+	
 }

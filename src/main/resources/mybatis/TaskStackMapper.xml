@@ -29,6 +29,6 @@
      </select> 
      
      <update id="addRepeageTimesById" >
-        update from TaskStack set repeatTimes=#{repeatTimes} where id = #{id}
+        update TaskStack set repeatTimes=#{repeatTimes} where id = #{id}
      </update>
 </mapper>

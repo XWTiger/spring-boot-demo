@@ -7,7 +7,7 @@ public class TaskResult {
 	private String requestMethod;
 	private String params;
 	private String resultStatus;
-	private String errorInfo;
+	private String info;
 	private String addTime;
 	private String requestUrl;
 	
@@ -41,11 +41,11 @@ public class TaskResult {
 	public void setResultStatus(String resultStatus) {
 		this.resultStatus = resultStatus;
 	}
-	public String getErrorInfo() {
-		return errorInfo;
+	public String getInfo() {
+		return info;
 	}
-	public void setErrorInfo(String errorInfo) {
-		this.errorInfo = errorInfo;
+	public void setInfo(String info) {
+		this.info = info;
 	}
 	public String getRequestUrl() {
 		return requestUrl;

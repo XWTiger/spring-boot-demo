@@ -52,6 +52,7 @@ public class UnlockService {
 				taskResultDao.addResult(taskResult);
 			}else{
 				repeatTimes++;
+				logger.debug("repeatTime---->"+repeatTimes);
 				taskStackDao.unLockTask(ts.getId());
 				taskStackDao.addRepeageTimesById(ts.getId(), repeatTimes);
 			}
@@ -71,7 +72,7 @@ public class UnlockService {
 		tResult.setId(id);
 		tResult.setRequestMethod(requestMthod);
 		tResult.setParams(parameters);
-		tResult.setErrorInfo(requestResponse);
+		tResult.setInfo(requestResponse);
 		tResult.setcFarmId(cFarmId);
 		tResult.setRequestUrl(callBackUrl);
 		return tResult;

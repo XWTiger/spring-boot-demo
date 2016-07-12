@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.chinacloud.isv.domain.TaskStack;
 import com.chinacloud.isv.entity.Params;
+import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
 import com.chinacloud.isv.factory.MirFactory;
 import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.persistance.TaskStackDao;
@@ -90,7 +91,9 @@ public class MirRequestService {
 				riskStack.setParams(sb.toString());
 				int farmId = 0;
 				if(params.getData().getType().equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)){
-					farmId = WhiteholeFactory.getFarmId(params);
+					logger.debug("service tempalte Json:"+params.getData().getPayload().getOrder().getEditionCode());
+					MirTemplate mTemplate = wf.getEntity(MirTemplate.class, params.getData().getPayload().getOrder().getEditionCode());
+					farmId = Integer.parseInt(mTemplate.getFarmId());
 				}
 				riskStack.setFarmId(farmId);
 				riskStack.setLock(0);

@@ -6,7 +6,7 @@ public class MirTemplate {
 	private String serviceTemplateName;
 	private String farmId;
 	private String serviceTemplateId;
-	private ArrayList<ComponentInfo> componentInfos;
+	private ArrayList<ComponentInfo> componentInfo;
 	
 	public String getServiceTemplateName() {
 		return serviceTemplateName;
@@ -26,10 +26,11 @@ public class MirTemplate {
 	public void setServiceTemplateId(String serviceTemplateId) {
 		this.serviceTemplateId = serviceTemplateId;
 	}
-	public ArrayList<ComponentInfo> getComponentInfos() {
-		return componentInfos;
+	public ArrayList<ComponentInfo> getComponentInfo() {
+		return componentInfo;
 	}
-	public void setComponentInfos(ArrayList<ComponentInfo> componentInfos) {
-		this.componentInfos = componentInfos;
+	public void setComponentInfo(ArrayList<ComponentInfo> componentInfo) {
+		this.componentInfo = componentInfo;
 	}
+	
 }

@@ -23,7 +23,7 @@
   </select>
 
   <insert id="addRecord">
-    insert into OrderRecord(id,sysName,modelFarmId,cFarmId,usrName,appStackServiceId,addTime) 
-    values (#{id},#{sysName},#{modelFarmId},#{cFarmId},#{usrName},#{appStackServiceId},now())
+    insert into OrderRecord(id,sysName,modelFarmId,cFarmId,usrName,serviceTemplateId,addTime) 
+    values (#{id},#{sysName},#{modelFarmId},#{cFarmId},#{usrName},#{serviceTemplateId},now())
   </insert>
 </mapper>

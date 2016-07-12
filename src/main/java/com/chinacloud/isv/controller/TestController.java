@@ -2,7 +2,6 @@ package com.chinacloud.isv.controller;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 
 import org.apache.logging.log4j.LogManager;
@@ -16,8 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.chinacloud.isv.component.VtrualMachineQuery;
 import com.chinacloud.isv.entity.ResultObject;
 import com.chinacloud.isv.entity.VMQeuryParam;
-import com.chinacloud.isv.entity.mirtemplate.ComponentInfo;
-import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
+import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.service.ConfigurateFarmService;
 import com.chinacloud.isv.service.LoginService;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -80,19 +78,35 @@ public class TestController {
 	
 	@RequestMapping("/test_exception")
 	public void exceptionTest(){
-		ResultObject ro = loginService.login(null, null);
+		String teString="{\"success\":true,\"successMessage\":\"Farm successfully saved\",\"farmId\":\"13\",\"isNewFarm\":false}";
+		WhiteholeFactory wFactory = new WhiteholeFactory();
+		try {
+			ResultObject mirTemplate = wFactory.getEntity(ResultObject.class, teString);
+			logger.debug("content:"+mirTemplate.isNewFarm());
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		/*ResultObject ro = loginService.login(null, null);
 		MirTemplate mTemplate = new MirTemplate();
 		ArrayList<ComponentInfo> aList = new ArrayList<>();
 		mTemplate.setFarmId("3");
 		mTemplate.setServiceTemplateId("asdfasdf-sddf-adsf-adf");
 		ComponentInfo cInfo =new ComponentInfo();
 		cInfo.setComponentName("wanghui-20160414-redhat67-kvm-mysql51-15disk");
-		cInfo.setComponentNet("b3fb2933-6422-4ed8-be97-5aaadf3d7e8c");
+		//cInfo.setComponentNet("b3fb2933-6422-4ed8-be97-5aaadf3d7e8c");
 		cInfo.setUnitFlavorId("1");
 		cInfo.setUnitInstanceNumber("1");
 		aList.add(cInfo);
-		mTemplate.setComponentInfos(aList);
-		configurateFarmService.configClonedFarm(mTemplate, "3", ro);
+		mTemplate.setComponentInfo(aList);
+		configurateFarmService.configClonedFarm(mTemplate, "3", ro);*/
 	}
 
 }

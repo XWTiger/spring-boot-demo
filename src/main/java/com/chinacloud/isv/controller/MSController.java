@@ -25,14 +25,14 @@ public class MSController {
 	OrderRecordService orderRecordService;
 	private Logger logger = LogManager.getLogger(MSController.class);
 	
-	@RequestMapping(value="/event_request",produces = {"application/json;charset=UTF-8"})
+	@RequestMapping(value="/isv/event_request",produces = {"application/json;charset=UTF-8"})
 	public String eventRequest(@RequestParam String url){
 		System.out.println("this is callback url ---->"+url);
 		return mirRequestService.sendRequest(url);
 	}
 	
 	@ResponseBody
-	@RequestMapping(value="/orders",method=RequestMethod.GET)
+	@RequestMapping(value="/isv/orders",method=RequestMethod.GET)
 	public HashMap<Object, Object> getOrderRecordList(
 			@RequestParam("service_template_id") String serviceId,
 			@RequestParam("page")int page, 
@@ -44,7 +44,7 @@ public class MSController {
 	}
 	
 	@ResponseBody
-	@RequestMapping(value="/instances",method=RequestMethod.POST)
+	@RequestMapping(value="/isv/instances",method=RequestMethod.POST)
 	public ArrayList<HashMap<Object, Object>>  getServiceTemplateInstanceNum(@RequestBody HashMap<String, Object> templatIdList){
 		@SuppressWarnings("unchecked")
 		ArrayList<String> list =  (ArrayList<String>) templatIdList.get("templatIdList");

@@ -543,7 +543,7 @@ public class VtrualMachineQuery extends Thread{
 		tResult.setId(id);
 		tResult.setRequestMethod(requestMthod);
 		tResult.setParams(parameters);
-		tResult.setErrorInfo(requestResponse);
+		tResult.setInfo(requestResponse);
 		tResult.setcFarmId(cFarmId);
 		tResult.setRequestUrl(callBackUrl);
 		return tResult;

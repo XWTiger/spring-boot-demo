@@ -151,14 +151,14 @@ public class MSUtil {
 	 * @param task
 	 * @return
 	 */
-	public static TaskResult getTaskResult(int type, TaskStack task, String r, String comebackResult) {
+	public static TaskResult getTaskResult(int type, TaskStack task, String r, String comebackResult,int clonedFarmId) {
 		TaskResult result = new TaskResult();
 		if (1 == type) {
 			result.setResultStatus("SUCCESS");
 			result.setId(task.getId());
 			result.setRequestMethod(task.getRequestMethod());
 			result.setParams(r);
-			result.setErrorInfo(comebackResult);
+			result.setInfo(comebackResult);
 			result.setRequestUrl(task.getCallBackUrl());
 		} else {
 			result.setResultStatus("FAILED");
@@ -166,7 +166,7 @@ public class MSUtil {
 			result.setRequestMethod(task.getRequestMethod());
 			result.setParams(r);
 			result.setRequestUrl(task.getCallBackUrl());
-			result.setErrorInfo("call back return result failed:" + comebackResult);
+			result.setInfo("call back return result failed,farm id:" + comebackResult);
 		}
 		return result;
 	}
@@ -244,17 +244,21 @@ public class MSUtil {
 				for (JsonNode jsonNode : cNode) {
 					System.out.println(jsonNode.toString());
 					String buffer = jsonNode.toString();
-					System.out.println(jsonNode.get("name").toString());
+					logger.debug(jsonNode.get("name").toString());
 					ComponentInfo componentInfo = null;
-					for (ComponentInfo c : mirTemplate.getComponentInfos()) {
+					for (ComponentInfo c : mirTemplate.getComponentInfo()) {
 						if (jsonNode.get("name").toString().equals("\""+c.getComponentName()+"\"")) {
 							componentInfo = c;
 							break;
 						}
 					}
+					if(null == componentInfo){
+						logger.error("can't find a component that is named "+jsonNode.get("name").toString()+",the json configuration is wrong");
+						return null;
+					}
 					String realString = replaceValue(buffer,"scaling.min_instances","\""+componentInfo.getUnitInstanceNumber()+"\"");
 					realString = replaceValue(realString, "openstack.flavor-id", "\""+componentInfo.getUnitFlavorId()+"\"");
-					realString = replaceValue(realString, "openstack.networks", "\"[\\\""+componentInfo.getComponentNet()+"\\\"]\"");
+					realString = replaceValue(realString, "openstack.networks", "\"[\\\""+componentInfo.getComponentNet()[0]+"\\\"]\"");
 					roleStrNode[i] = realString;
 					i++;
 				}

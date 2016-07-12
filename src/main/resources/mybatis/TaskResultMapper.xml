@@ -4,7 +4,7 @@
 <mapper namespace="com.chinacloud.isv.persistance.TaskResultDao">
     <insert id="addResult">
     insert into TaskResult(id,cFarmId,requestMethod,params,resultStatus,info,addTime,requestUrl)
-    values(#{id},#{cFarmId},#{requestMethod},#{params},#{resultStatus},#{errorInfo},now(),#{requestUrl})
+    values(#{id},#{cFarmId},#{requestMethod},#{params},#{resultStatus},#{info},now(),#{requestUrl})
     </insert>
     
     <select id="getOrderTaskResultById" parameterType="String" resultType="com.chinacloud.isv.domain.TaskResult">
