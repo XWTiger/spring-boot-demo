@@ -17,11 +17,13 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.domain.TaskStack;
 import com.chinacloud.isv.entity.Params;
 import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
 import com.chinacloud.isv.factory.MirFactory;
 import com.chinacloud.isv.factory.WhiteholeFactory;
+import com.chinacloud.isv.persistance.TaskResultDao;
 import com.chinacloud.isv.persistance.TaskStackDao;
 import com.chinacloud.isv.util.CaseProvider;
 import com.chinacloud.isv.util.MSUtil;
@@ -34,6 +36,8 @@ public class MirRequestService {
 	private TaskStackDao riskStackDao;
 	@Autowired
 	private MirFactory mirFactory;
+	@Autowired
+	private TaskResultDao taskResultDao;
 	
 	public String  sendRequest(String url){
 		String message = null;
@@ -94,6 +98,16 @@ public class MirRequestService {
 					logger.debug("service tempalte Json:"+params.getData().getPayload().getOrder().getEditionCode());
 					MirTemplate mTemplate = wf.getEntity(MirTemplate.class, params.getData().getPayload().getOrder().getEditionCode());
 					farmId = Integer.parseInt(mTemplate.getFarmId());
+				}else{
+					//add destination farm id
+					String instanceId = params.getData().getPayload().getInstance().getInstanceId();
+					logger.debug("when add task to stack, the instance id---->"+instanceId);
+					TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
+					if(null == tr){
+						logger.error("get clone farm id failed because of database return null");
+					}else{
+						riskStack.setDestinationFarmId(String.valueOf(tr.getcFarmId()));
+					}
 				}
 				riskStack.setFarmId(farmId);
 				riskStack.setLock(0);

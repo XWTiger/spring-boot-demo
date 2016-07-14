@@ -11,7 +11,7 @@ public class TaskStack {
 	private int lockTask;
 	private int farmId;
 	private int repeatTimes;
-	
+	private String destinationFarmId;
 	
 	public int getLock() {
 		return lockTask;
@@ -73,5 +73,10 @@ public class TaskStack {
 	public void setRepeatTimes(int repeatTimes) {
 		this.repeatTimes = repeatTimes;
 	}
-	
+	public String getDestinationFarmId() {
+		return destinationFarmId;
+	}
+	public void setDestinationFarmId(String destinationFarmId) {
+		this.destinationFarmId = destinationFarmId;
+	}
 }

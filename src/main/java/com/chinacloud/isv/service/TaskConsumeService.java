@@ -171,6 +171,7 @@ public class TaskConsumeService {
 								taskResultDao.addResult(taskResult);
 								break;
 							}
+							
 							String suspendResult = mirFactory.suspendService(params,tr.getcFarmId(),taskStack);
 							if(null == suspendResult){
 								logger.error("suspend case, suspend service return null");
@@ -179,6 +180,7 @@ public class TaskConsumeService {
 							CloseableHttpResponse response = WhiteholeFactory.callBackReturnResult(suspendResult, params);
 							if(null == response){
 								logger.error("suspend case, call back return result failed");
+								taskResult = MSUtil.getTaskResult(0, taskStack, result, "call back return result is null",tr.getcFarmId());
 							}else{
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
@@ -228,6 +230,7 @@ public class TaskConsumeService {
 								CloseableHttpResponse response = WhiteholeFactory.callBackReturnResult(result, params);
 								if(null == response){
 									logger.error("suspend case, call back return result failed");
+									taskResult = MSUtil.getTaskResult(0, taskStack, result, "call back return result is null",tr.getcFarmId());
 								}else{
 									HttpEntity entity = response.getEntity();
 									String comebackResult = EntityUtils.toString(entity);
@@ -265,8 +268,9 @@ public class TaskConsumeService {
 								try {
 									CloseableHttpResponse rebootR = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
 									logger.info("reboot case,error message report, response msg:"+EntityUtils.toString(rebootR.getEntity()));
+									//remove the task
 								} catch (Exception e) {
-									logger.error("order case,response order result failed");
+									logger.error("reboot case,response order result failed");
 									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage(),tr.getcFarmId());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());

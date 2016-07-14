@@ -16,6 +16,8 @@ public class VMQeuryParam {
 	private String usrName;
 	private long beginTime;
 	private int type = 0;
+	private String destinationFarmId;
+	private int totalInstance;//a farm have virtual machine total number
 	//the instance id is order case result id
 	
 	public int getModelFarmId() {
@@ -113,5 +115,16 @@ public class VMQeuryParam {
 	public void setEnventId(String enventId) {
 		this.enventId = enventId;
 	}
-	
+	public String getDestinationFarmId() {
+		return destinationFarmId;
+	}
+	public void setDestinationFarmId(String destinationFarmId) {
+		this.destinationFarmId = destinationFarmId;
+	}
+	public int getTotalInstance() {
+		return totalInstance;
+	}
+	public void setTotalInstance(int totalInstance) {
+		this.totalInstance = totalInstance;
+	}
 }

@@ -10,6 +10,7 @@ public class TaskResult {
 	private String info;
 	private String addTime;
 	private String requestUrl;
+	private String destinationFarmId;
 	
 	public String getId() {
 		return id;
@@ -58,5 +59,11 @@ public class TaskResult {
 	}
 	public void setAddTime(String addTime) {
 		this.addTime = addTime;
+	}
+	public String getDestinationFarmId() {
+		return destinationFarmId;
+	}
+	public void setDestinationFarmId(String destinationFarmId) {
+		this.destinationFarmId = destinationFarmId;
 	}
 }

@@ -17,6 +17,7 @@ create table if not exists TaskStack
    farmId                   int(10),
    addTime                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    repeatTimes int(10) unsigned zerofill NOT NULL DEFAULT '0000000000',
+   destinationFarmId text,
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -30,6 +31,7 @@ create table if not exists TaskResult
    resultStatus             varchar(64) not null,
    info                     text,
    addTime                  timestamp  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   destinationFarmId text,
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 create table if not exists OrderRecord

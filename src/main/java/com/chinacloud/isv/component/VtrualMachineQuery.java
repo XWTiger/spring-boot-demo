@@ -106,6 +106,7 @@ public class VtrualMachineQuery extends Thread{
 							String result = null;
 							try {
 								result = WhiteholeFactory.getJsonString(data);
+								logger.info("reboot case,call back return result msg:"+result);
 							} catch (JsonProcessingException e) {
 								logger.error("reboot case,waiting result,convert object to string failed");
 								e.printStackTrace();
@@ -116,7 +117,7 @@ public class VtrualMachineQuery extends Thread{
 							try {
 								response = MSUtil.httpClientPostUrl(map, vp.getCallbackUrl(), newResult);
 							} catch (Exception e) {
-								taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", vp.getCallbackUrl(), "call back return result failed,errorMsg:"+e.getLocalizedMessage(), vp.getcFarmId(), vp.getCallbackUrl(), result);
+								taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", vp.getCallbackUrl(), "call back return result failed,errorMsg:"+e.getLocalizedMessage(), vp.getcFarmId(), vp.getCallbackUrl(), result,vp.getDestinationFarmId());
 								//delete the row record of task 
 								riskStackDao.deleteTask(vp.getTaskId());
 								taskResultDao.addResult(taskResult);
@@ -129,13 +130,13 @@ public class VtrualMachineQuery extends Thread{
 								logger.error("reboot case,convert result entity to string failed");
 								e.printStackTrace();
 							} 
-							taskResult = this.getResultInstance(vp.getTaskId(), "SUCCESS", vp.getCallbackUrl(), requestResponse, vp.getcFarmId(), vp.getCallbackUrl(), result);
+							taskResult = this.getResultInstance(vp.getTaskId(), "SUCCESS", vp.getCallbackUrl(), requestResponse,0, vp.getCallbackUrl(), result,vp.getDestinationFarmId());
 							riskStackDao.deleteTask(vp.getTaskId());
 							taskResultDao.addResult(taskResult);
 							removeQueryTask(vp);
 						}else{
-							if(!timeOutCheck(vp)){
-								TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Reboot Case,Farm Id="+vp.getcFarmId()+" TIME OUT,", vp.getcFarmId(), "", "");
+							if(timeOutCheck(vp)){
+								TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Reboot Case,Farm Id="+vp.getcFarmId()+" TIME OUT,", vp.getcFarmId(), "", "",vp.getDestinationFarmId());
 								riskStackDao.deleteTask(vp.getTaskId());
 								taskResultDao.addResult(taskResult);
 								removeQueryTask(vp);
@@ -174,7 +175,7 @@ public class VtrualMachineQuery extends Thread{
 							}else{
 								logger.warn("active case,running vitrual machine error,we need "+server.getTotal()+" machines,but it just have "+count);
 								if(timeOutCheck(vp)){
-									TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Active Case,Farm Id"+vp.getcFarmId()+" TIME OUT",0, "", "");
+									TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Active Case,Farm Id"+vp.getcFarmId()+" TIME OUT",0, "", "",vp.getDestinationFarmId());
 									riskStackDao.deleteTask(vp.getTaskId());
 									taskResultDao.addResult(taskResult);
 									removeQueryTask(vp);
@@ -203,12 +204,12 @@ public class VtrualMachineQuery extends Thread{
 							HttpEntity entity = response.getEntity();
 							String comebackResult = EntityUtils.toString(entity);
 							logger.info("response entity content--->"+comebackResult);
-							taskResult = this.getResultInstance(vp.getTaskId(), "SUCCESS", "POST", comebackResult, 0, vp.getCallbackUrl(), result);
+							taskResult = this.getResultInstance(vp.getTaskId(), "SUCCESS", "POST", comebackResult, 0, vp.getCallbackUrl(), result,vp.getDestinationFarmId());
 							//delete the row record of task and the order case result
 							riskStackDao.deleteTask(vp.getTaskId());
 							taskResultDao.addResult(taskResult);
 						} catch (Exception e) {
-							taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "POST", "call back return result failed:"+e.getMessage(), 0, vp.getCallbackUrl(), result);
+							taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "POST", "call back return result failed:"+e.getMessage(), 0, vp.getCallbackUrl(), result,vp.getDestinationFarmId());
 							//delete the row record of task 
 							riskStackDao.deleteTask(vp.getTaskId());
 							taskResultDao.addResult(taskResult);
@@ -243,7 +244,7 @@ public class VtrualMachineQuery extends Thread{
 									logger.info("all virtual machine Terminated farmid:"+vp.getcFarmId());
 								}else{
 									if(timeOutCheck(vp)){
-										TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Cancle Case,Farm Id"+vp.getcFarmId()+" TIME OUT", 0, "", "");
+										TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Cancle Case,Farm Id"+vp.getcFarmId()+" TIME OUT", 0, "", "",vp.getDestinationFarmId());
 										riskStackDao.deleteTask(vp.getTaskId());
 										taskResultDao.addResult(taskResult);
 										removeQueryTask(vp);
@@ -304,7 +305,7 @@ public class VtrualMachineQuery extends Thread{
 							HttpEntity entity = response.getEntity();
 							String comebackResult = EntityUtils.toString(entity);
 							logger.info("response entity content--->"+comebackResult);
-							taskResult = this.getResultInstance(vp.getTaskId(), "SUCCESS", "POST", comebackResult, 0, vp.getCallbackUrl(), result);
+							taskResult = this.getResultInstance(vp.getTaskId(), "SUCCESS", "POST", comebackResult, 0, vp.getCallbackUrl(), result,vp.getDestinationFarmId());
 							//delete the row record of task and the order case result
 							riskStackDao.deleteTask(vp.getTaskId());
 							//delete order case result
@@ -314,7 +315,7 @@ public class VtrualMachineQuery extends Thread{
 							taskResultDao.addResult(taskResult);
 							removeQueryTask(vp);
 						} catch (Exception e) {
-							taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "POST", "call back return result failed."+e.getLocalizedMessage(), 0, vp.getCallbackUrl(),"");
+							taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "POST", "call back return result failed."+e.getLocalizedMessage(), 0, vp.getCallbackUrl(),"",vp.getDestinationFarmId());
 							//delete the row record of task 
 							riskStackDao.deleteTask(vp.getTaskId());
 							taskResultDao.addResult(taskResult);
@@ -331,29 +332,9 @@ public class VtrualMachineQuery extends Thread{
 							ArrayList<ServerInfo> sList = server.getData();
 							//do analyze
 							int total = Integer.parseInt(server.getTotal());
-							logger.debug("total : "+total+"\n roles : "+vp.getRoles());
-							if(total >= vp.getRoles()){
-								String [] nameList = new String[total];
-								int number = 0;
-								for (ServerInfo serverInfo : sList) {
-									nameList[number] = serverInfo.getRole_name();
-									number++;
-								}
-								number = 0;
-								for(int i = 0; i < total; i++){
-									String name = nameList[i];
-									if(!name.equals("")){
-										for(int j = i+1; j < total; j++){
-											if(name.equals(nameList[j])){
-												nameList[j] = "";
-												number++;
-											}
-										}
-									}
-								}
-								logger.debug("repeat name number : "+number);
-								logger.debug("real number: "+(total - number));
-								if((total - number) == vp.getRoles()){
+							logger.debug("total : "+total+" roles : "+vp.getRoles()+" virtual machine number :"+vp.getTotalInstance());
+							if(total >= vp.getTotalInstance()){
+								if(total == vp.getTotalInstance()){
 									int flag = 0;
 									for (ServerInfo serverInfo : sList) {
 										if(!serverInfo.getStatus().equals("Running")){
@@ -365,7 +346,7 @@ public class VtrualMachineQuery extends Thread{
 										//check time 
 										boolean b = timeOutCheck(vp);
 										if(b){
-											TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id"+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "");
+											TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id"+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId());
 											riskStackDao.deleteTask(vp.getTaskId());
 											taskResultDao.addResult(taskResult);
 											removeQueryTask(vp);
@@ -408,7 +389,7 @@ public class VtrualMachineQuery extends Thread{
 									//check time 
 									boolean b = timeOutCheck(vp);
 									if(b){
-										TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id="+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "");
+										TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id="+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId());
 										riskStackDao.deleteTask(vp.getTaskId());
 										taskResultDao.addResult(taskResult);
 										removeQueryTask(vp);
@@ -417,7 +398,7 @@ public class VtrualMachineQuery extends Thread{
 							}else{// server number less than total
 								boolean b = timeOutCheck(vp);
 								if(b){
-									TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id="+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "");
+									TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id="+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId());
 									riskStackDao.deleteTask(vp.getTaskId());
 									taskResultDao.addResult(taskResult);
 									removeQueryTask(vp);
@@ -428,7 +409,7 @@ public class VtrualMachineQuery extends Thread{
 							logger.error("order case,get Server list error\n"+e.getLocalizedMessage());
 							boolean b = timeOutCheck(vp);
 							if(b){
-								TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id"+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "");
+								TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "", "Order Case,Farm Id"+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId());
 								riskStackDao.deleteTask(vp.getTaskId());
 								taskResultDao.addResult(taskResult);
 								removeQueryTask(vp);
@@ -449,7 +430,7 @@ public class VtrualMachineQuery extends Thread{
 									callbackResponse = MSUtil.httpClientPostUrl(map,vp.getCallbackUrl(), newResult);
 								} catch (Exception e) {
 									logger.error("order case,response order result failed");
-									TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "POST", "", vp.getcFarmId(), vp.getCallbackUrl(), e.getLocalizedMessage());
+									TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "FAILED", "POST", "", vp.getcFarmId(), vp.getCallbackUrl(), e.getLocalizedMessage(),vp.getDestinationFarmId());
 									//delete the row record of task 
 									riskStackDao.deleteTask(vp.getTaskId());
 									taskResultDao.addResult(taskResult);
@@ -468,7 +449,7 @@ public class VtrualMachineQuery extends Thread{
 									logger.error("after call back return result,get resopnse error\n"+e.getLocalizedMessage());
 									e.printStackTrace();
 								}
-								TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "SUCCESS", "POST", respCall, vp.getcFarmId(), vp.getCallbackUrl(), result);
+								TaskResult taskResult = this.getResultInstance(vp.getTaskId(), "SUCCESS", "POST", respCall, vp.getcFarmId(), vp.getCallbackUrl(), result,vp.getDestinationFarmId());
 								//add order service instance row
 								orderRecordDao.addRecord(getOrderRecordInstance(vp));
 								//delete the row record of task 
@@ -537,7 +518,7 @@ public class VtrualMachineQuery extends Thread{
 	 * type not 0 success, 0 filed
 	 * @return
 	 */
-	private TaskResult getResultInstance(String id,String status,String requestMthod,String requestResponse,int cFarmId,String callBackUrl,String parameters){
+	private TaskResult getResultInstance(String id,String status,String requestMthod,String requestResponse,int cFarmId,String callBackUrl,String parameters,String destinationFarmId){
 		TaskResult tResult = new TaskResult();
 		tResult.setResultStatus(status);
 		tResult.setId(id);
@@ -545,6 +526,8 @@ public class VtrualMachineQuery extends Thread{
 		tResult.setParams(parameters);
 		tResult.setInfo(requestResponse);
 		tResult.setcFarmId(cFarmId);
+		logger.debug("===========cFarmId=======>"+cFarmId+"===destinationFarmId==>"+destinationFarmId);
+		tResult.setDestinationFarmId(destinationFarmId);
 		tResult.setRequestUrl(callBackUrl);
 		return tResult;
 	}

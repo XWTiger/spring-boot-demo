@@ -78,10 +78,12 @@ public class ConfigurateFarmService {
 		}
 		//save configuration
 		String saveConfUrl = configuration.getMirConnectUrl()+"farms/builder/xBuild";
+		String encodeStrFarm = confList[0];
+		String encodeStrRole = confList[1];
 		List<NameValuePair> params_list = new ArrayList<NameValuePair>();
 		params_list.add(new BasicNameValuePair("farmId",String.valueOf(cloneFarmId)));
-		params_list.add(new BasicNameValuePair("farm",confList[0]));
-		params_list.add(new BasicNameValuePair("roles",confList[1]));
+		params_list.add(new BasicNameValuePair("farm",encodeStrFarm));
+		params_list.add(new BasicNameValuePair("roles",encodeStrRole));
 		params_list.add(new BasicNameValuePair("v2","1"));
 		params_list.add(new BasicNameValuePair("changed",confList[2]));
 		CloseableHttpResponse saveResponse = null;

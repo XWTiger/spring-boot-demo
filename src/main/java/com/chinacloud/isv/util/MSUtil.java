@@ -160,13 +160,15 @@ public class MSUtil {
 			result.setParams(r);
 			result.setInfo(comebackResult);
 			result.setRequestUrl(task.getCallBackUrl());
+			result.setDestinationFarmId(String.valueOf(clonedFarmId));
 		} else {
 			result.setResultStatus("FAILED");
 			result.setId(task.getId());
 			result.setRequestMethod(task.getRequestMethod());
 			result.setParams(r);
 			result.setRequestUrl(task.getCallBackUrl());
-			result.setInfo("call back return result failed,farm id:" + comebackResult);
+			result.setDestinationFarmId(String.valueOf(clonedFarmId));
+			result.setInfo("call back return result failed,farm id:"+clonedFarmId +", errorMsg:"+ comebackResult);
 		}
 		return result;
 	}
@@ -213,7 +215,44 @@ public class MSUtil {
 		}
 		return newString;
 	}
-
+/**
+ * encode utf-8
+ * @param s
+ * @return
+ */
+	public static String encodeUtf8(String s){
+		String newString = null;
+		try {
+			newString = new String(s.getBytes(), "utf-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return newString;
+	}
+	/**
+	 * convert string to unicode
+	 * @param string
+	 * @return
+	 */
+	public static String string2Unicode(String string) {
+	    StringBuffer unicode = new StringBuffer();
+	    for (int i = 0; i < string.length(); i++) {
+	        // 取出每一个字符
+	        char c = string.charAt(i);
+	        // 转换为unicode
+	        if(Integer.toHexString(c).length()==1){
+	        	unicode.append("\\u000" + Integer.toHexString(c));
+	        }else if(Integer.toHexString(c).length()==2){
+	        	unicode.append("\\u00" + Integer.toHexString(c));
+	        }else if(Integer.toHexString(c).length()==3){
+	        	unicode.append("\\u0" + Integer.toHexString(c));
+	        }else{
+	        	unicode.append("\\u" + Integer.toHexString(c));
+	        }
+	    }
+	    return unicode.toString();
+	}
+	
 	/**
 	 * get new configuration string
 	 * 
@@ -232,28 +271,42 @@ public class MSUtil {
 			JsonNode node = oMapper.readTree(farmConf);
 			JsonNode nodeM = node.get("moduleParams");
 			JsonNode farm = nodeM.get("farm");
+			JsonNode farmChild = farm.get("farm");
+			String farmName = farmChild.get("name").toString();
+			String farmDescription = farmChild.get("description").toString();
+			String newFarmInfo = null;
+			logger.info("farm description------>"+farmDescription);
+			if(!farmDescription.equals("\"\"")){
+				String unicode = string2Unicode(farmDescription.substring(1, farmName.length()-1));
+				newFarmInfo = replaceValue(farmInfo, "description", "\"" + unicode + "\"");
+				logger.info("new farm description------>"+newFarmInfo);
+			}
+			logger.info("farm name---->"+farmName);
+			String unicode = string2Unicode(farmName.substring(1, farmName.length()-1));
 			liStrings[2] = null;
 			farmInfo = farm.get("farm").toString();
-			System.out.println("farm info---->" + farmInfo);
-			liStrings[0] = farmInfo;
+			logger.info("farm info---->" + farmInfo);
+			newFarmInfo = replaceValue(farmInfo, "name", "\"" + unicode + "\"");
+			logger.info("new farm info---->" + newFarmInfo);
+			liStrings[0] = newFarmInfo;
 			JsonNode cNode = farm.get("roles");
 			if (cNode.isArray()) {
-				System.out.println("node size--->" + cNode.size());
 				String[] roleStrNode = new String[cNode.size()];
 				int i = 0 ;
 				for (JsonNode jsonNode : cNode) {
 					System.out.println(jsonNode.toString());
 					String buffer = jsonNode.toString();
-					logger.debug(jsonNode.get("name").toString());
+					logger.debug(jsonNode.get("alias").toString());
 					ComponentInfo componentInfo = null;
 					for (ComponentInfo c : mirTemplate.getComponentInfo()) {
-						if (jsonNode.get("name").toString().equals("\""+c.getComponentName()+"\"")) {
+						logger.debug("component name:"+c.getComponentName());
+						if (jsonNode.get("alias").toString().equals("\""+c.getComponentName()+"\"")) {
 							componentInfo = c;
 							break;
 						}
 					}
 					if(null == componentInfo){
-						logger.error("can't find a component that is named "+jsonNode.get("name").toString()+",the json configuration is wrong");
+						logger.error("can't find a component that is named "+jsonNode.get("alias").toString()+",the json configuration is wrong");
 						return null;
 					}
 					String realString = replaceValue(buffer,"scaling.min_instances","\""+componentInfo.getUnitInstanceNumber()+"\"");

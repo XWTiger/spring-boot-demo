@@ -39,6 +39,8 @@ public class VirtualMachineStatusCheck {
 		String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+farmId+"&imageId=&limit=10&page=1&query=&start=0";
 		WhiteholeFactory wFactory = new WhiteholeFactory();
 		Map<String,String> headerMap = new HashMap<String,String>();
+		logger.debug("secure key:"+securtyKey);
+		logger.debug("specialToken:"+specialToken);
 		headerMap.put("X-Secure-Key", securtyKey);
 		headerMap.put("X-Requested-Token", specialToken);
 		CloseableHttpResponse qResult = null;
@@ -53,6 +55,12 @@ public class VirtualMachineStatusCheck {
 		String serverInfo = null;
 		try {
 			serverInfo = EntityUtils.toString(qResult.getEntity());
+			if(serverInfo.contains("\"success\":false")){
+				logger.error("query status,get virtual info failed. task id: "+taskId+",farm id:"+farmId);
+				b = false;
+				return b;
+			}
+			logger.info("query status,virtual machine info:"+serverInfo);
 		} catch (Exception e) {
 			logger.error("convert server entity to string failed.task id: "+taskId+" errorMsg:"+e.getLocalizedMessage());
 			e.printStackTrace();
@@ -69,16 +77,10 @@ public class VirtualMachineStatusCheck {
 			return b;
 		} 
 		int flagNotRunning = 0;
-		String servers = "[";
 		ArrayList<ServerInfo> sList = s.getData();
 		for (int i = 0 ;i < Integer.parseInt(s.getTotal()); i++) {
-			if(!sList.get(i).equals(status)){
+			if(!sList.get(i).getStatus().equals(status)){
 				flagNotRunning++;
-			}
-			if((i + 1) == Integer.parseInt(s.getTotal())){
-				servers = servers+"\""+sList.get(i).getServer_id()+"\"]";
-			}else{
-				servers = servers+"\""+sList.get(i).getServer_id()+"\",";
 			}
 		}
 		if(flagNotRunning > 0){
