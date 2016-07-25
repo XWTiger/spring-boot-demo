@@ -3,7 +3,7 @@ package com.chinacloud.isv.domain;
 public class TaskResult {
 
 	private String id;
-	private int cFarmId = 0;
+	private String cFarmId = "0";
 	private String requestMethod;
 	private String params;
 	private String resultStatus;
@@ -18,10 +18,10 @@ public class TaskResult {
 	public void setId(String id) {
 		this.id = id;
 	}
-	public int getcFarmId() {
+	public String getcFarmId() {
 		return cFarmId;
 	}
-	public void setcFarmId(int cFarmId) {
+	public void setcFarmId(String cFarmId) {
 		this.cFarmId = cFarmId;
 	}
 	public String getRequestMethod() {

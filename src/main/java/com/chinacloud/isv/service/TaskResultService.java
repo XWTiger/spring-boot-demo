@@ -1,5 +1,7 @@
 package com.chinacloud.isv.service;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -23,13 +25,13 @@ public class TaskResultService {
 	private int taskResultNumber;
 	@Value("${service.deleteTime}")
 	private int Time;
-	
+	private static final Logger logger = LogManager.getLogger(TaskResultService.class);
 	@Scheduled(fixedRate = 50000)
 	private void manageTaskResult(){
 		
-		System.out.println("manage result --->"+taskResultNumber);
+		logger.info("delete max number --->"+taskResultNumber);
 		int number = taskResultDao.getCount();
-		System.out.println("result number--->"+number);
+		logger.info("real number --->"+number);
 		if(number > taskResultNumber){
 			taskResultDao.deleteResult(Time);
 		}

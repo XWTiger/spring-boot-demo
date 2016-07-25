@@ -50,7 +50,7 @@ public class TestController {
 		ObjectMapper mapper = new ObjectMapper();
 		VMQeuryParam vParam = new VMQeuryParam();
 		vParam.setCallbackUrl("asdfasdf");
-		vParam.setcFarmId(110);
+		vParam.setcFarmId("110");
 		vParam.setBeginTime(new Date().getTime());
 		VMQeuryParam = vParam;
 		vtrualMachineQuery.addQueryTask(vParam);

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
@@ -19,8 +20,10 @@ import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.chinacloud.isv.domain.OrderRecord;
 import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.domain.TaskStack;
+import com.chinacloud.isv.entity.VMQeuryParam;
 import com.chinacloud.isv.entity.mirtemplate.ComponentInfo;
 import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -37,7 +40,8 @@ public class MSUtil {
 			{ CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL, "销毁事件" },
 			{ CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND, "挂起事件" },
 			{ CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE, "激活事件" },
-			{ CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT,"重启事件"} };
+			{ CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT,"重启事件"},
+			{CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH,"启动事件"}};
 
 	/**
 	 * distinguish Synchronization
@@ -151,7 +155,7 @@ public class MSUtil {
 	 * @param task
 	 * @return
 	 */
-	public static TaskResult getTaskResult(int type, TaskStack task, String r, String comebackResult,int clonedFarmId) {
+	public static TaskResult getTaskResult(int type, TaskStack task, String r, String comebackResult,String clonedFarmId,String caseType) {
 		TaskResult result = new TaskResult();
 		if (1 == type) {
 			result.setResultStatus("SUCCESS");
@@ -160,14 +164,19 @@ public class MSUtil {
 			result.setParams(r);
 			result.setInfo(comebackResult);
 			result.setRequestUrl(task.getCallBackUrl());
-			result.setDestinationFarmId(String.valueOf(clonedFarmId));
+			if(caseType.equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)){
+				result.setcFarmId(clonedFarmId);
+				result.setDestinationFarmId(task.getFarmId());
+			}else{
+				result.setDestinationFarmId(clonedFarmId);
+			}
 		} else {
 			result.setResultStatus("FAILED");
 			result.setId(task.getId());
 			result.setRequestMethod(task.getRequestMethod());
 			result.setParams(r);
 			result.setRequestUrl(task.getCallBackUrl());
-			result.setDestinationFarmId(String.valueOf(clonedFarmId));
+			result.setDestinationFarmId(clonedFarmId);
 			result.setInfo("call back return result failed,farm id:"+clonedFarmId +", errorMsg:"+ comebackResult);
 		}
 		return result;
@@ -376,5 +385,22 @@ public class MSUtil {
 		string = bufferHeader +"\""+name+"\":"+value+bufferTail;
 		logger.debug("final string =====>"+string);
 		return string;
+	}
+	
+	/**
+	 * get order record instance 
+	 * @param vp
+	 * @return OrderRecord
+	 */
+	public static OrderRecord getOrderRecordInstance(VMQeuryParam vp){
+		OrderRecord orderRecord = new OrderRecord();
+		orderRecord.setId(UUID.randomUUID().toString());//service instance id
+		orderRecord.setServiceTemplateId(vp.getServiceTemplateId());
+		orderRecord.setSysName(vp.getSystem());
+		orderRecord.setcFarmId(vp.getcFarmId());
+		orderRecord.setModelFarmId(vp.getModelFarmId());
+		orderRecord.setUsrName(vp.getUsrName());
+		orderRecord.setServiceTemplateName(vp.getServiceTemplateName());
+		return orderRecord;
 	}
 }

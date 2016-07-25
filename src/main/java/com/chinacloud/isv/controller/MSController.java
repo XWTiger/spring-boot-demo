@@ -35,17 +35,18 @@ public class MSController {
 	@RequestMapping(value="/isv/orders",method=RequestMethod.GET)
 	public HashMap<Object, Object> getOrderRecordList(
 			@RequestParam("service_template_id") String serviceId,
-			@RequestParam("page")int page, 
-	        @RequestParam("page_size")int pageSize,
+			@RequestParam(value="farm_id",required=false)String farmId,
+			@RequestParam(value="page",required=false)Integer page, 
+	        @RequestParam(value="page_size",required=false)Integer pageSize,
 			@RequestParam(value="order_by", required=false)String orderBy,
 			@RequestParam(value="order", required=false) String order){
 		logger.info("=======query order service instance====serviece id:"+serviceId);
-		return orderRecordService.getRecordList(serviceId, page, pageSize, orderBy, order);
+		return orderRecordService.getRecordList(serviceId,farmId, page, pageSize, orderBy, order);
 	}
 	
 	@ResponseBody
 	@RequestMapping(value="/isv/instances",method=RequestMethod.POST)
-	public ArrayList<HashMap<Object, Object>>  getServiceTemplateInstanceNum(@RequestBody HashMap<String, Object> templatIdList){
+	public HashMap<Object, Object>  getServiceTemplateInstanceNum(@RequestBody HashMap<String, Object> templatIdList){
 		@SuppressWarnings("unchecked")
 		ArrayList<String> list =  (ArrayList<String>) templatIdList.get("templatIdList");
 		if(null == list){

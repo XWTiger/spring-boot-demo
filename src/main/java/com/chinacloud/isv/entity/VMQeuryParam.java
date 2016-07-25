@@ -6,11 +6,11 @@ public class VMQeuryParam {
 	private String callbackUrl;
 	private int roles;
 	private String taskId;
-	private int cFarmId;
+	private String cFarmId;
 	private String xSecurityKey;
 	private String specialToken;
 	private String enventId;
-	private int modelFarmId;
+	private String modelFarmId;
 	private String system;
 	private String serviceTemplateId;
 	private String usrName;
@@ -18,16 +18,25 @@ public class VMQeuryParam {
 	private int type = 0;
 	private String destinationFarmId;
 	private int totalInstance;//a farm have virtual machine total number
+	private String params;//this is order case's parameters
+	private String serviceTemplateName;
 	//the instance id is order case result id
 	
-	public int getModelFarmId() {
-		return modelFarmId;
-	}
-	public void setModelFarmId(int modelFarmId) {
-		this.modelFarmId = modelFarmId;
-	}
+	
 	public String getSystem() {
 		return system;
+	}
+	public String getModelFarmId() {
+		return modelFarmId;
+	}
+	public void setModelFarmId(String modelFarmId) {
+		this.modelFarmId = modelFarmId;
+	}
+	public String getcFarmId() {
+		return cFarmId;
+	}
+	public void setcFarmId(String cFarmId) {
+		this.cFarmId = cFarmId;
 	}
 	public void setSystem(String system) {
 		this.system = system;
@@ -85,12 +94,6 @@ public class VMQeuryParam {
 	public void setTaskId(String taskId) {
 		this.taskId = taskId;
 	}
-	public int getcFarmId() {
-		return cFarmId;
-	}
-	public void setcFarmId(int cFarmId) {
-		this.cFarmId = cFarmId;
-	}
 	public long getBeginTime() {
 		return beginTime;
 	}
@@ -126,5 +129,17 @@ public class VMQeuryParam {
 	}
 	public void setTotalInstance(int totalInstance) {
 		this.totalInstance = totalInstance;
+	}
+	public String getParams() {
+		return params;
+	}
+	public void setParams(String params) {
+		this.params = params;
+	}
+	public String getServiceTemplateName() {
+		return serviceTemplateName;
+	}
+	public void setServiceTemplateName(String serviceTemplateName) {
+		this.serviceTemplateName = serviceTemplateName;
 	}
 }

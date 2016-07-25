@@ -4,11 +4,13 @@ public class OrderRecord {
 
 	private String id;
 	private String sysName;
-	private int modelFarmId;
-	private int cFarmId;
+	private String modelFarmId;
+	private String cFarmId;
 	private String serviceTemplateId;
 	private String usrName;
 	private String addTime;
+	private String serviceTemplateName;
+	
 	
 	public String getId() {
 		return id;
@@ -22,16 +24,16 @@ public class OrderRecord {
 	public void setSysName(String sysName) {
 		this.sysName = sysName;
 	}
-	public int getModelFarmId() {
+	public String getModelFarmId() {
 		return modelFarmId;
 	}
-	public void setModelFarmId(int modelFarmId) {
+	public void setModelFarmId(String modelFarmId) {
 		this.modelFarmId = modelFarmId;
 	}
-	public int getcFarmId() {
+	public String getcFarmId() {
 		return cFarmId;
 	}
-	public void setcFarmId(int cFarmId) {
+	public void setcFarmId(String cFarmId) {
 		this.cFarmId = cFarmId;
 	}
 	public String getUsrName() {
@@ -52,6 +54,10 @@ public class OrderRecord {
 	public void setServiceTemplateId(String serviceTemplateId) {
 		this.serviceTemplateId = serviceTemplateId;
 	}
-	
-	
+	public String getServiceTemplateName() {
+		return serviceTemplateName;
+	}
+	public void setServiceTemplateName(String serviceTemplateName) {
+		this.serviceTemplateName = serviceTemplateName;
+	}
 }

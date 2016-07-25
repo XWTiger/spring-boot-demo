@@ -23,24 +23,38 @@ public class OrderRecordService {
 	 * @param order
 	 * @return ArrayList<OrderRecord>
 	 */
-	public HashMap<Object, Object> getRecordList(String serviceTemplateId,int page, int pageSize, String orderBy, String order){
-		if (page <= 0) {
-            throw new IllegalArgumentException("参数（page）不合法");
-        }
-        if (pageSize <= 0) {
-            throw new IllegalArgumentException("参数（pageSize）不合法");
-        }
+	public HashMap<Object, Object> getRecordList(String serviceTemplateId,String farmId,Integer page, Integer pageSize, String orderBy, String order){
+	
         if(null == orderBy || "".equals(orderBy)){
         	orderBy = "addTime";
         }
         if(null == order || "".equals(order)){
         	order = "desc";
         }
-        double num = orderRecordDao.cout(serviceTemplateId);
-        int pageNumber =  (int) Math.ceil(num/pageSize);
-        List<OrderRecord> list = orderRecordDao.getList(serviceTemplateId, (page - 1) * pageSize, pageSize, orderBy, order);
+        if(null == serviceTemplateId || serviceTemplateId.equals("")){
+        	serviceTemplateId = null;
+        }
+        if(null == farmId || farmId.equals("")){
+        	farmId = null;
+        }
+        
+    	double num = orderRecordDao.cout(serviceTemplateId);
         HashMap<Object, Object> map = new HashMap<>();
-        map.put("pages", pageNumber);
+        List<OrderRecord> list = null;
+        if(null == page || 0 == page){
+        	list = orderRecordDao.getList(serviceTemplateId,farmId, 0, (int)num, orderBy, order);
+        	 map.put("pages", 1);
+        }else{
+        	if(page < 0){
+        		throw new IllegalArgumentException("页码不能小于0");
+        	}
+        	if(pageSize < 0){
+        		throw new IllegalArgumentException("每页显示数量不能小于0");
+        	}
+        	int pageNumber =  (int) Math.ceil(num/pageSize);
+        	list = orderRecordDao.getList(serviceTemplateId,farmId, (page - 1) * pageSize, pageSize, orderBy, order);
+        	 map.put("pages", pageNumber);
+        }
         map.put("totalCount",(int)num);
         map.put("list", list);
 		return map;
@@ -50,10 +64,11 @@ public class OrderRecordService {
 	 * @param list
 	 * @return hash map
 	 */
-	public ArrayList<HashMap<Object, Object>> getSTNumber(String [] list){
+	public HashMap<Object, Object> getSTNumber(String [] list){
 		if(null == list){
 			throw new IllegalArgumentException("服务模板ID列表为空");
 		}
+		HashMap<Object, Object> rmap = new HashMap<>();
 		ArrayList<HashMap<Object, Object>> mapList = new ArrayList<>();
 		HashMap<Object, Object> map = null;
 		for (String string : list) {
@@ -62,7 +77,8 @@ public class OrderRecordService {
 			map.put("count", orderRecordDao.cout(string));
 			mapList.add(map);
 		}
-		return mapList;
+		rmap.put("data", mapList);
+		return rmap;
 	}
 	
 	
@@ -72,7 +88,7 @@ public class OrderRecordService {
 	 * @param cFarmId
 	 * @return
 	 */
-	public boolean deleteRecordByCFarmId(int cFarmId){
+	public boolean deleteRecordByCFarmId(String cFarmId){
 		boolean b = true;
 		Integer result = orderRecordDao.deleteByCloneFarmId(cFarmId);
 		if(null == result){

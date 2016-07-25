@@ -14,7 +14,7 @@ create table if not exists TaskStack
    params                   text not null,
    callBackUrl              varchar(255) not null,
    lockTask                     tinyint,
-   farmId                   int(10),
+   farmId                   varchar(255),
    addTime                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    repeatTimes int(10) unsigned zerofill NOT NULL DEFAULT '0000000000',
    destinationFarmId text,
@@ -24,7 +24,7 @@ create table if not exists TaskStack
 create table if not exists TaskResult
 (
    id                       varchar(36) not null,
-   cFarmId                  int(10),
+   cFarmId                  varchar(255),
    requestMethod            varchar(255) not null,
    requestUrl               text not null,
    params                   text not null,
@@ -38,10 +38,11 @@ create table if not exists OrderRecord
 (
    id                       varchar(36) not null,
    sysName                  varchar(255) not null,
-   modelFarmId              int(10) not null,
-   cFarmId                  int(10) not null,
+   modelFarmId              varchar(255) not null,
+   cFarmId                  varchar(255) not null,
    usrName                  varchar(255),
    serviceTemplateId       varchar(255),
+   serviceTemplateName       varchar(255),
    addTime                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -34,7 +34,7 @@ public class VirtualMachineStatusCheck {
 	 * @param status
 	 * @return
 	 */
-	public boolean isAllInOneStatus(int farmId,String securtyKey,String specialToken,String caseType,String taskId,String status){
+	public boolean isAllInOneStatus(String farmId,String securtyKey,String specialToken,String caseType,String taskId,String status){
 		boolean b = true;
 		String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+farmId+"&imageId=&limit=10&page=1&query=&start=0";
 		WhiteholeFactory wFactory = new WhiteholeFactory();

@@ -93,11 +93,11 @@ public class MirRequestService {
 				riskStack.setCallBackUrl(params.getData().getCallBackUrl());
 				riskStack.setId(uuid);
 				riskStack.setParams(sb.toString());
-				int farmId = 0;
+				String farmId = "0";
 				if(params.getData().getType().equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)){
 					logger.debug("service tempalte Json:"+params.getData().getPayload().getOrder().getEditionCode());
 					MirTemplate mTemplate = wf.getEntity(MirTemplate.class, params.getData().getPayload().getOrder().getEditionCode());
-					farmId = Integer.parseInt(mTemplate.getFarmId());
+					farmId = mTemplate.getFarmId();
 				}else{
 					//add destination farm id
 					String instanceId = params.getData().getPayload().getInstance().getInstanceId();
@@ -106,7 +106,7 @@ public class MirRequestService {
 					if(null == tr){
 						logger.error("get clone farm id failed because of database return null");
 					}else{
-						riskStack.setDestinationFarmId(String.valueOf(tr.getcFarmId()));
+						riskStack.setDestinationFarmId(tr.getcFarmId());
 					}
 				}
 				riskStack.setFarmId(farmId);

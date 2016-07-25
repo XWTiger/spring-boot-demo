@@ -9,7 +9,7 @@ public class TaskStack {
 	private String callBackUrl;
 	private String addTime;
 	private int lockTask;
-	private int farmId;
+	private String farmId;
 	private int repeatTimes;
 	private String destinationFarmId;
 	
@@ -19,10 +19,10 @@ public class TaskStack {
 	public void setLock(int lock) {
 		this.lockTask = lock;
 	}
-	public int getFarmId() {
+	public String getFarmId() {
 		return farmId;
 	}
-	public void setFarmId(int farmId) {
+	public void setFarmId(String farmId) {
 		this.farmId = farmId;
 	}
 	public String getAddTime() {

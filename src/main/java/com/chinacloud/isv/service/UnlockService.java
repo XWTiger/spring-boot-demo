@@ -66,7 +66,7 @@ public class UnlockService {
 	 * type not 0 success, 0 filed
 	 * @return
 	 */
-	private TaskResult getResultInstance(String id,String status,String requestMthod,String requestResponse,int cFarmId,String callBackUrl,String parameters){
+	private TaskResult getResultInstance(String id,String status,String requestMthod,String requestResponse,String cFarmId,String callBackUrl,String parameters){
 		TaskResult tResult = new TaskResult();
 		tResult.setResultStatus(status);
 		tResult.setId(id);
