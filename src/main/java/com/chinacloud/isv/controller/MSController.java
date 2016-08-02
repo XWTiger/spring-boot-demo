@@ -34,7 +34,7 @@ public class MSController {
 	@ResponseBody
 	@RequestMapping(value="/isv/orders",method=RequestMethod.GET)
 	public HashMap<Object, Object> getOrderRecordList(
-			@RequestParam("service_template_id") String serviceId,
+			@RequestParam(value="service_template_id",required=false) String serviceId,
 			@RequestParam(value="farm_id",required=false)String farmId,
 			@RequestParam(value="page",required=false)Integer page, 
 	        @RequestParam(value="page_size",required=false)Integer pageSize,

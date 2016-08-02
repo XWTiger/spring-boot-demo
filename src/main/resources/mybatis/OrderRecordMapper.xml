@@ -17,7 +17,9 @@
       order by ${orderBy} ${order}
     </if>
     <!-- order by creation_time desc -->
+    <if test="serviceTemplateId != null or farmId != null">
     limit #{limit} offset #{offset}
+    </if>
   </select>
 
   <delete id="deleteByCloneFarmId">
@@ -27,11 +29,11 @@
   <select id="cout" resultType="Integer">
     select count(*) from OrderRecord
     <where>
-        <if test="serviceTemplateId == null">
-         1 = 1
+        <if test="farmId != null">
+         and cFarmId = #{farmId}
         </if>
         <if test="serviceTemplateId != null">
-         serviceTemplateId=#{serviceTemplateId}
+            and serviceTemplateId=#{serviceTemplateId}
         </if>
     </where>
   </select>

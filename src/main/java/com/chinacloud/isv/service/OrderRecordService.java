@@ -38,23 +38,18 @@ public class OrderRecordService {
         	farmId = null;
         }
         
-    	double num = orderRecordDao.cout(serviceTemplateId);
+    	double num = orderRecordDao.cout(serviceTemplateId,farmId);
         HashMap<Object, Object> map = new HashMap<>();
         List<OrderRecord> list = null;
-        if(null == page || 0 == page){
-        	list = orderRecordDao.getList(serviceTemplateId,farmId, 0, (int)num, orderBy, order);
-        	 map.put("pages", 1);
-        }else{
-        	if(page < 0){
-        		throw new IllegalArgumentException("页码不能小于0");
-        	}
-        	if(pageSize < 0){
-        		throw new IllegalArgumentException("每页显示数量不能小于0");
-        	}
-        	int pageNumber =  (int) Math.ceil(num/pageSize);
-        	list = orderRecordDao.getList(serviceTemplateId,farmId, (page - 1) * pageSize, pageSize, orderBy, order);
-        	 map.put("pages", pageNumber);
-        }
+    	if(page < 0){
+    		throw new IllegalArgumentException("页码不能小于0");
+    	}
+    	if(pageSize < 0){
+    		throw new IllegalArgumentException("每页显示数量不能小于0");
+    	}
+    	int pageNumber =  (int) Math.ceil(num/pageSize);
+    	list = orderRecordDao.getList(serviceTemplateId,farmId, (page - 1) * pageSize, pageSize, orderBy, order);
+    	 map.put("pages", pageNumber);
         map.put("totalCount",(int)num);
         map.put("list", list);
 		return map;
@@ -74,7 +69,7 @@ public class OrderRecordService {
 		for (String string : list) {
 			map =new HashMap<>();
 			map.put("id", string);
-			map.put("count", orderRecordDao.cout(string));
+			map.put("count", orderRecordDao.cout(string,null));
 			mapList.add(map);
 		}
 		rmap.put("data", mapList);
