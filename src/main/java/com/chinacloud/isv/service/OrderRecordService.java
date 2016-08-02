@@ -41,10 +41,10 @@ public class OrderRecordService {
     	double num = orderRecordDao.cout(serviceTemplateId,farmId);
         HashMap<Object, Object> map = new HashMap<>();
         List<OrderRecord> list = null;
-    	if(page < 0){
+    	if(page <= 0){
     		throw new IllegalArgumentException("页码不能小于0");
     	}
-    	if(pageSize < 0){
+    	if(pageSize <= 0){
     		throw new IllegalArgumentException("每页显示数量不能小于0");
     	}
     	int pageNumber =  (int) Math.ceil(num/pageSize);
