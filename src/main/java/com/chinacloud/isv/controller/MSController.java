@@ -26,7 +26,7 @@ public class MSController {
 	private Logger logger = LogManager.getLogger(MSController.class);
 	
 	@RequestMapping(value="/isv/event_request",produces = {"application/json;charset=UTF-8"})
-	public String eventRequest(@RequestParam String url){
+	public String eventRequest(@RequestParam(value="url",required=false) String url){
 		System.out.println("this is callback url ---->"+url);
 		return mirRequestService.sendRequest(url);
 	}

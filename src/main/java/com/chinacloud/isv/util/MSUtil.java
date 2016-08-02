@@ -284,6 +284,7 @@ public class MSUtil {
 			String farmName = farmChild.get("name").toString();
 			String farmDescription = farmChild.get("description").toString();
 			String newFarmInfo = null;
+			
 			logger.info("farm description------>"+farmDescription);
 			if(!farmDescription.equals("\"\"")){
 				String unicode = string2Unicode(farmDescription.substring(1, farmName.length()-1));
@@ -318,9 +319,11 @@ public class MSUtil {
 						logger.error("can't find a component that is named "+jsonNode.get("alias").toString()+",the json configuration is wrong");
 						return null;
 					}
+					logger.info("ip pool====>"+componentInfo.getComponentIpPool());
 					String realString = replaceValue(buffer,"scaling.min_instances","\""+componentInfo.getUnitInstanceNumber()+"\"");
 					realString = replaceValue(realString, "openstack.flavor-id", "\""+componentInfo.getUnitFlavorId()+"\"");
 					realString = replaceValue(realString, "openstack.networks", "\"[\\\""+componentInfo.getComponentNet()[0]+"\\\"]\"");
+					realString = replaceValue(realString, "openstack.ip-pool", "\""+componentInfo.getComponentIpPool()+"\"");
 					roleStrNode[i] = realString;
 					i++;
 				}
@@ -361,16 +364,20 @@ public class MSUtil {
 		String bufferTail = null;
 		logger.debug("go into here?");
 		int index = jsonStr.indexOf(name);
-		System.out.println("head===>" + jsonStr.substring(0, index));
+		if(index <= 0){
+			//the jsonStr don't have the key value
+			logger.warn("the configuration string don't have "+name);
+			return jsonStr;
+		}
+		logger.info("replace key=======>"+name+"value====>"+value);
 		// find ","
 		bufferHeader = jsonStr.substring(0, index - 1);
-		System.out.println("bufferHeader===>"+bufferHeader);
+		
 		int rIndex = index +name.length();
 		int rEndIndex = 0;
 		for (int i = rIndex; i < jsonStr.length(); i++) {
 			String content = jsonStr.substring(i, i + 1);
 			if (content.equals(",")) {
-				System.out.println("the real index -->" + i);
 				rEndIndex = i;
 				break;
 			}
@@ -380,8 +387,6 @@ public class MSUtil {
 			return null;
 		}
 		bufferTail = jsonStr.substring(rEndIndex, jsonStr.length());
-		logger.debug("buffer header ===>"+bufferHeader);
-		logger.debug("buffer tail ====>"+bufferTail);
 		string = bufferHeader +"\""+name+"\":"+value+bufferTail;
 		logger.debug("final string =====>"+string);
 		return string;

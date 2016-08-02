@@ -42,6 +42,9 @@ public class MirRequestService {
 	public String  sendRequest(String url){
 		String message = null;
 		//do login or get x-request-token
+		if(null == url){
+			return "{\"code\":200, \"msg\" : \"success\"}";
+		}
 		if(MSUtil.isTestParameter(url)){
 			return "{\"code\":200, \"msg\" : \"success\"}";
 		}

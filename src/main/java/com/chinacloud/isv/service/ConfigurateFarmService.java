@@ -66,7 +66,7 @@ public class ConfigurateFarmService {
 			}
 		} catch (Exception e) {
 			b = false;
-			logger.error("get cloned farm configuration failed");
+			logger.error("get cloned farm configuration failed,errorMsg:"+e.getLocalizedMessage());
 			e.printStackTrace();
 			return b ;
 		}

@@ -76,7 +76,7 @@ public class MirFactory {
 			params = wFactory.getEntity(Params.class, taskStack.getParams());
 			vp.setUsrName(params.getData().getCreator().getEmail());
 			vp.setModelFarmId(farmId);
-			vp.setSystem(params.getData().getPayload().getTenant().getName());
+			vp.setSystem(params.getData().getMarketplace().getPartner());
 		} catch (Exception e) {
 			logger.error("order case,convert string to object failed. task id: "+taskStack.getId());
 			e.printStackTrace();
@@ -241,7 +241,7 @@ public class MirFactory {
 		att_list.add(att2);
 		att_list.add(att3);
 		process.setAttribute(att_list);
-		process.setExtensionUrl("http://172.16.60.3/mirui/dev/virtualMachine");
+		process.setExtensionUrl(configuration.getMirMoreOperateUrl()+"/"+cloneFarmId);
 		data.setProcess(process);
 		try {
 			result = WhiteholeFactory.getJsonString(data);
@@ -256,6 +256,7 @@ public class MirFactory {
 		String startResult = null;
 		MirTemplate mTemplate = null;
 		WhiteholeFactory wFactory = new WhiteholeFactory();
+		logger.info("=====================启动事件,farm ID: "+cFarmId+"===============================");
 		//get service template id 
 		try {
 			mTemplate = wFactory.getEntity(MirTemplate.class, orderParams.getData().getPayload().getOrder().getEditionCode());
@@ -268,6 +269,11 @@ public class MirFactory {
 		vp.setServiceTemplateId(mTemplate.getServiceTemplateId());
 		for (ComponentInfo ci : mTemplate.getComponentInfo()) {
 			totalInstance += Integer.parseInt(ci.getUnitInstanceNumber());
+		}
+		if(0 == totalInstance){
+			startResult = WhiteholeFactory.getFailedMsg(params,"处理失败,原因是虚拟机数量为0，请联系管理员。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH);
+			logger.error("launch case farmid:"+cFarmId+", virtual machine number is 0");
+			return startResult;
 		}
 		vp.setTotalInstance(totalInstance);
 		ResultObject robj = loginService.login(null, null);
@@ -349,6 +355,11 @@ public class MirFactory {
 			logger.error("when suspend case, convert servers info to json failed,farm id:"+cFarmId+"  "+e.getLocalizedMessage());
 			String listServersResult = WhiteholeFactory.getFailedMsg(params, "处理失败，转换虚拟机清单信息成JSON格式失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
 			e.printStackTrace();
+			return listServersResult;
+		}
+		if(0 == Integer.parseInt(servers.getTotal())){
+			String listServersResult = WhiteholeFactory.getFailedMsg(params, "处理失败，虚拟机数量为0，请联系管理员", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+			logger.error("suspend case farmid:"+cFarmId+", virtual machine number is 0");
 			return listServersResult;
 		}
 		String suspendUrl = configuration.getMirConnectUrl()+"servers/xSuspendServers";
@@ -445,36 +456,38 @@ public class MirFactory {
 			}
 		}
 		//remove ssh key
-		try {
-			if(null == sshKeyId){
-				logger.error("the ssh key id is empty");
-				String resultCancleCase = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是获取应用堆栈的SSH KEY失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
+		if(null == sshKeyId){
+			logger.warn("the ssh key id is empty,farm id:"+cFarmId);
+			result = "SSH key(s) successfully removed";
+			//String resultCancleCase = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是获取应用堆栈的SSH KEY失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
+			//return resultCancleCase;
+		}else{
+			try {
+				List<NameValuePair> params_list = new ArrayList<NameValuePair>();
+				params_list.add(new BasicNameValuePair("sshKeyId","[\""+sshKeyId+"\"]"));
+				CloseableHttpResponse response = MSUtil.httpClientPostUrl(headerMap, removeSSHKeyUrl, params_list);
+				String requestR = EntityUtils.toString(response.getEntity());
+				ResultObject ro= wFactory.getEntity(ResultObject.class, requestR);
+				if(!ro.isSuccess()){
+					logger.error("remove farm ssh key failed");
+					String resultCancleCase = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是删除应用堆栈SSH KEY 失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
+					return resultCancleCase;
+				}
+				result = requestR;
+				response.close();
+			} catch (Exception e) {
+				logger.error("cancle case,remove farm ssh key failed，farm id:"+cFarmId+"  "+e.getLocalizedMessage());
+				String resultCancleCase = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是删除应用堆栈SSH KEY 异常。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
+				e.printStackTrace();
 				return resultCancleCase;
 			}
-			List<NameValuePair> params_list = new ArrayList<NameValuePair>();
-			params_list.add(new BasicNameValuePair("sshKeyId","[\""+sshKeyId+"\"]"));
-			CloseableHttpResponse response = MSUtil.httpClientPostUrl(headerMap, removeSSHKeyUrl, params_list);
-			String requestR = EntityUtils.toString(response.getEntity());
-			ResultObject ro= wFactory.getEntity(ResultObject.class, requestR);
-			if(!ro.isSuccess()){
-				logger.error("remove farm ssh key failed");
-				String resultCancleCase = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是删除应用堆栈SSH KEY 失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
-				return resultCancleCase;
-			}
-			result = requestR;
-			response.close();
-		} catch (Exception e) {
-			logger.error("cancle case,remove farm ssh key failed，farm id:"+cFarmId+"  "+e.getLocalizedMessage());
-			String resultCancleCase = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是删除应用堆栈SSH KEY 异常。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
-			e.printStackTrace();
-			return resultCancleCase;
 		}
 		//remove farm stack move to mission queue
-		
 		return result;
 	}
 	
 	public String activeService(Params p,String cFarmId,VMQeuryParam vp,TaskStack taskStack){
+		logger.info("=====================激活事件,farm ID: "+cFarmId+"===============================");
 		String result = null;
 		WhiteholeFactory wFactory = new WhiteholeFactory();
 		Map<String,String> headerMap = new HashMap<String,String>();
@@ -541,11 +554,16 @@ public class MirFactory {
 				e.printStackTrace();
 			}
 		}
-		if(total == count){
-			result = CaseProvider.ACTIVE_FIRST_STEP; 
+		if(0 != total){ 
+			if(total == count){
+				result = CaseProvider.ACTIVE_FIRST_STEP; 
+			}else{
+				logger.warn("active number less than total");
+				result = WhiteholeFactory.getFailedMsg(p, "处理失败，原因是激活虚拟机数量异常", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
+			}
 		}else{
-			logger.warn("active number less than total");
-			result = WhiteholeFactory.getFailedMsg(p, "处理失败，原因是激活虚拟机数量异常", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
+			result = WhiteholeFactory.getFailedMsg(p, "处理失败，原因是虚拟机数量为0，请联系管理员", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
+			logger.error("active case farmid:"+cFarmId+", virtual machine number is 0");
 		}
 		return result;
 	}
@@ -554,6 +572,7 @@ public class MirFactory {
 		String result = null;
 		Data data = new Data();
 		String instanceId = p.getData().getPayload().getInstance().getInstanceId();
+		logger.info("=====================启动事件,实例 ID: "+instanceId+"===============================");
 		logger.info("QUERY　CASE: the instance id---->"+instanceId);
 		logger.info("test the  taskResultDao--->"+taskResultDao==null);
 		TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
@@ -565,7 +584,7 @@ public class MirFactory {
 		}
 		//task result the order mission is time out
 		if(tr.getInfo().contains(CaseProvider.STATUS_TIME_OUT)){
-			logger.warn("task result id:"+tr.getId()+",farm id:"+tr.getcFarmId()+"task time out");
+			logger.error("task result id:"+tr.getId()+",farm id:"+tr.getcFarmId()+"task time out");
 		}
 		com.chinacloud.isv.entity.callbackparams.Process process = new com.chinacloud.isv.entity.callbackparams.Process();
 		Map<String,String> headerMap = new HashMap<String,String>();
@@ -689,7 +708,11 @@ public class MirFactory {
 			e1.printStackTrace();
 		} 
 		int flagNotRunning = 0;
-		
+		if(0 == Integer.parseInt(s.getTotal())){
+			allRebootResult = WhiteholeFactory.getFailedMsg(p, "处理失败，原因是虚拟机数量为0，请联系管理员", CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT);
+			logger.error("suspend case farmid:"+cFarmId+", virtual machine number is 0");
+			return allRebootResult;
+		}
 		ArrayList<ServerInfo> sList = s.getData();
 		for (int i = 0 ;i < Integer.parseInt(s.getTotal()); i++) {
 			if(!sList.get(i).getStatus().equals("Running")){

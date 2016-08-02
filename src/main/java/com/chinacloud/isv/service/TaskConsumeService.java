@@ -83,6 +83,7 @@ public class TaskConsumeService {
 									map.put("Content-Type", "application/json");
 									logger.info("call back url: "+params.getData().getCallBackUrl());
 									String newResult = MSUtil.encode(result);
+									logger.info("the new post result==========>"+newResult);
 									CloseableHttpResponse response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
 									HttpEntity entity = response.getEntity();
 									String callBackResponse = EntityUtils.toString(entity);

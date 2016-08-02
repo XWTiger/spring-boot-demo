@@ -23,6 +23,8 @@ public class Configuration {
 	private String password;
 	@Value("${mir.serviceTemplateUrl}")
 	private String serviceTemplateUrl;
+	@Value("${mir.moreOperateUrl}")
+	private String mirMoreOperateUrl;
 	
 	public String getUserName() {
 		return userName;
@@ -70,6 +72,14 @@ public class Configuration {
 
 	public void setServiceTemplateUrl(String serviceTemplateUrl) {
 		this.serviceTemplateUrl = serviceTemplateUrl;
+	}
+
+	public String getMirMoreOperateUrl() {
+		return mirMoreOperateUrl;
+	}
+
+	public void setMirMoreOperateUrl(String mirMoreOperateUrl) {
+		this.mirMoreOperateUrl = mirMoreOperateUrl;
 	}
 	
 }

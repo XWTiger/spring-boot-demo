@@ -6,6 +6,7 @@ public class ComponentInfo {
 	private String unitFlavorId;
 	private String unitInstanceNumber;
 	private String[] componentNet;
+	private String componentIpPool;
 	
 	public String getComponentName() {
 		return componentName;
@@ -30,6 +31,12 @@ public class ComponentInfo {
 	}
 	public void setComponentNet(String[] componentNet) {
 		this.componentNet = componentNet;
+	}
+	public String getComponentIpPool() {
+		return componentIpPool;
+	}
+	public void setComponentIpPool(String componentIpPool) {
+		this.componentIpPool = componentIpPool;
 	}
 	
 }
