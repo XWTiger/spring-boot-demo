@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.chinacloud.isv.component.VirtualMachineStatusCheck;
 import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.domain.TaskStack;
@@ -61,6 +62,9 @@ public class MirFactory {
 	MSTemplateService msTemplateService;
 	@Autowired
 	ConfigurateFarmService configurateFarmService;
+	@Autowired
+	VirtualMachineStatusCheck virtualMachineStatusCheck;
+	
 	private static final Logger logger = LogManager.getLogger(MirFactory.class);
 	//every request Exception should be catch and return the result
 	public String orderService(String farmId,TaskStack taskStack,VMQeuryParam vp){
@@ -100,7 +104,7 @@ public class MirFactory {
 			totalInstance += Integer.parseInt(ci.getUnitInstanceNumber());
 		}
 		vp.setTotalInstance(totalInstance);
-		ResultObject robj= loginService.login("xiaweihu@chinacloud.com.cn", "!@#$QWERasdfzxcv*&POIUjklmbn");
+		ResultObject robj= loginService.login(null, null);
 		//do mir request
 		logger.info("=====================申请事件,事件ID: "+params.getData().getEventId()+" =========totalInstance:"+totalInstance+"===========");
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
@@ -114,7 +118,7 @@ public class MirFactory {
 		headerMap.put("X-Secure-Key", robj.getSecureKey());
 		headerMap.put("X-Requested-Token", robj.getSpecialToken());
 		//request url
-		String farmCloneUrl = configuration.getMirConnectUrl()+"farms/xClone";
+		String farmCloneUrl = configuration.getMirBaseUrl()+"/mir/proxy/farms/xClone";
 		//service clone	
 		List<NameValuePair> params_list = new ArrayList<NameValuePair>();
 		params_list.add(new BasicNameValuePair("farmId",String.valueOf(farmId)));
@@ -122,25 +126,24 @@ public class MirFactory {
 		try {
 			chr = MSUtil.httpClientPostUrl(headerMap, farmCloneUrl, params_list);
 		} catch (Exception e) {
-			logger.error("order case,clone farm stack failed.");
+			logger.error("order case,clone farm stack failed, we will unlock the task. msg:"+e.getLocalizedMessage());
 			unlockService.unlockMission(taskStack);
-			e.printStackTrace();
 		}
 		String CloneResult = null;
 		try {
 			CloneResult = EntityUtils.toString(chr.getEntity());
 			logger.info("order case,clone farm stack request's result:"+CloneResult);
 		} catch (Exception e) {
-			logger.error("order case,convert clone result to string failed");
-			e.printStackTrace();
+			logger.error("order case,convert clone result to string failed, msg:"+e.getLocalizedMessage());
+			return WhiteholeFactory.getFailedMsg(params, "处理失败，原因是转换克隆结果成为字符串失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 		} 
 		//do analyze by result
 		ResultObject resultObject = null;
 		try {
 			resultObject = wFactory.getEntity(ResultObject.class, CloneResult);
 		} catch (Exception e) {
-			logger.error("order case, convert string to result object failed");
-			e.printStackTrace();
+			logger.error("order case, convert string to result object failed, msg:"+e.getLocalizedMessage());
+			return WhiteholeFactory.getFailedMsg(params, "处理失败，原因是转换克隆结果成为实例失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 		} 
 		String roles = null;
 		//get the clone farm info
@@ -151,29 +154,29 @@ public class MirFactory {
 				farmNameEncode = URLEncoder.encode(farmName, "utf-8");
 			} catch (UnsupportedEncodingException e) {
 				logger.error("order case,farmName encode error "+e.getLocalizedMessage());
-				e.printStackTrace();
+				return WhiteholeFactory.getFailedMsg(params, "处理失败，原因是编码应用堆栈名称失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			}
-			String farmInfoUrl = configuration.getMirConnectUrl()+"farms/xListFarms?farmId=&limit=10&page=1&query="+farmNameEncode+"&showOnlyMy=0&sort=%5B%7B%22property%22:%22id%22,%22direction%22:%22DESC%22%7D%5D&start=0";
+			String farmInfoUrl = configuration.getMirBaseUrl()+"/mir/proxy/farms/xListFarms?farmId=&limit=10&page=1&query="+farmNameEncode+"&showOnlyMy=0&sort=%5B%7B%22property%22:%22id%22,%22direction%22:%22DESC%22%7D%5D&start=0";
 			CloseableHttpResponse response = null;
 			try {
 				response = MSUtil.httpClientGetUrl(headerMap, farmInfoUrl);
 			} catch (Exception e) {
 				logger.error("order case,get cloned farm info fialed "+e.getLocalizedMessage());
-				e.printStackTrace();
+				return WhiteholeFactory.getFailedMsg(params, "处理失败，原因是获取克隆的应用堆栈信息失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			}
 			String farmInfo = null;
 			try {
 				farmInfo = EntityUtils.toString(response.getEntity());
 				logger.info("order case,cloned farm info:"+farmInfo);
 			} catch (Exception e) {
-				logger.error("order case, get cloned farm info ,entity utils convert entity to string failed");
-				e.printStackTrace();
+				logger.error("order case, get cloned farm info ,entity utils convert entity to string failed,msg:"+e.getLocalizedMessage());
+				return WhiteholeFactory.getFailedMsg(params, "处理失败，原因是转换克隆的应用堆栈信息为字符串失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			}
 			try {
 				farms = wFactory.getEntity(Farms.class,farmInfo);
 			} catch (Exception e) {
-				logger.error("order case, convert farm info to object failed");
-				e.printStackTrace();
+				logger.error("order case, convert farm info to object failed,msg:"+e.getLocalizedMessage());
+				return WhiteholeFactory.getFailedMsg(params, "处理失败，原因是转换克隆的应用堆栈信息为实例失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			} 
 			if(farms.getData().size() == 1){
 				cloneFarmId = farms.getData().get(0).getId();
@@ -215,6 +218,7 @@ public class MirFactory {
 		//TODO add farm config operations
 		/*-------------------*/
 		if(!configurateFarmService.configClonedFarm(mTemplate, cloneFarmId, robj)){
+			removeCloneFarm(cloneFarmId, robj.getSecureKey(), robj.getSpecialToken());
 			String result = WhiteholeFactory.getFailedMsg(params,"处理失败,原因是配置克隆应用堆栈失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			return result;
 		}
@@ -247,7 +251,8 @@ public class MirFactory {
 			result = WhiteholeFactory.getJsonString(data);
 		} catch (JsonProcessingException e) {
 			logger.error("convert failed info to json failed \n"+e.getLocalizedMessage());
-			e.printStackTrace();
+			removeCloneFarm(cloneFarmId, robj.getSecureKey(), robj.getSpecialToken());
+			return WhiteholeFactory.getFailedMsg(params, "处理失败,原因是转换成功信息为json失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 		}
 		return result;
 	}
@@ -284,9 +289,41 @@ public class MirFactory {
 		vp.setxSecurityKey(robj.getSecureKey());
 		vp.setSpecialToken(robj.getSpecialToken());
 		vp.setDestinationFarmId(String.valueOf(cFarmId));
+		//list servers check if server number bigger than 0
+		CloseableHttpResponse qRes = null;
+		String queryUrl = configuration.getMirBaseUrl()+"/mir/proxy/servers/xListServers/?farmId="+cFarmId+"&imageId=&limit=10&page=1&query=&start=0";
+		String sInfoJson =null;
+		try {
+			qRes = MSUtil.httpClientGetUrl(headerMap, queryUrl);
+			sInfoJson = EntityUtils.toString(qRes.getEntity());
+		} catch (Exception e) {
+			logger.error("when do launch case,list servers failed. task id : "+taskStack.getId()+",farm id:"+cFarmId);
+			unlockService.unlockMission(taskStack);
+			e.printStackTrace();
+		}
+		try {
+			qRes.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		Servers servers = null;
+		try {
+			servers = wFactory.getEntity(Servers.class, sInfoJson);
+		}catch (Exception e) {
+			logger.error("when launch case, convert servers info to json failed,farm id:"+cFarmId+"  "+e.getLocalizedMessage());
+			String listServersResult = WhiteholeFactory.getFailedMsg(params, "处理失败，转换虚拟机清单信息成JSON格式失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH);
+			e.printStackTrace();
+			return listServersResult;
+		}
+		if(Integer.parseInt(servers.getTotal()) > 0){
+			String result = WhiteholeFactory.getFailedMsg(params,"处理失败,已经启动过该应用堆栈。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH);
+			return result;
+		}
+		
 		//service start
 		logger.info("=============begin launch farm===================");
-		String farmStartUrl = configuration.getMirConnectUrl()+"farms/xLaunch";
+		String farmStartUrl = configuration.getMirBaseUrl()+"/mir/proxy/farms/xLaunch";
 		List<NameValuePair> params_list_2 = new ArrayList<NameValuePair>();
 		vp.setcFarmId(cFarmId);
 		vp.setBeginTime(new Date().getTime());
@@ -304,6 +341,7 @@ public class MirFactory {
 		}
 		try {
 			startResult = EntityUtils.toString(startFarm.getEntity());
+			logger.info("launch case,farm id:"+cFarmId+",mir launch result:"+startResult);
 		} catch (Exception e1) {
 			logger.error("launch case,convert start farm entity to string failed");
 			e1.printStackTrace();
@@ -318,20 +356,26 @@ public class MirFactory {
 	
 	public String suspendService(Params params,String cFarmId,TaskStack taskStack){
 		String result = null;
+		logger.info("=====================挂起事件,farm ID: "+cFarmId+"===============================");
 		WhiteholeFactory wFactory = new WhiteholeFactory();
 		Map<String,String> headerMap = new HashMap<String,String>();
 		//login
 		ResultObject robj= loginService.login(null,null);
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
 			String loginResult = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是登录mir系统失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
-			logger.error("login mir plateform failed");
+			logger.error("suspend case,login mir plateform failed. farm id:"+cFarmId);
 			return loginResult;
 		}
 		headerMap.put("X-Secure-Key", robj.getSecureKey());
 		headerMap.put("X-Requested-Token", robj.getSpecialToken());
+		boolean b = virtualMachineStatusCheck.isAllInOneStatus(cFarmId, robj.getSecureKey(), robj.getSpecialToken(), CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND, taskStack.getId(), CaseProvider.VM_STATUS_RUNNING);
+		if(!b){
+			logger.error("suspend case,have a virtual machine is not running status. farm id:"+cFarmId);
+			return WhiteholeFactory.getFailedMsg(params, "处理失败,原因是存在虚拟机不是运行状态。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+		}
 		//list servers
 		CloseableHttpResponse qRes = null;
-		String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+cFarmId+"&imageId=&limit=10&page=1&query=&start=0";
+		String queryUrl = configuration.getMirBaseUrl()+"/mir/proxy/servers/xListServers/?farmId="+cFarmId+"&imageId=&limit=10&page=1&query=&start=0";
 		String sInfoJson =null;
 		try {
 			qRes = MSUtil.httpClientGetUrl(headerMap, queryUrl);
@@ -362,7 +406,8 @@ public class MirFactory {
 			logger.error("suspend case farmid:"+cFarmId+", virtual machine number is 0");
 			return listServersResult;
 		}
-		String suspendUrl = configuration.getMirConnectUrl()+"servers/xSuspendServers";
+		String suspendUrl = configuration.getMirBaseUrl()+"/mir/proxy/servers/xSuspendServers";
+		int failedNumber = 0;
 		for (ServerInfo s : servers.getData()) {
 			List<NameValuePair> params_list = new ArrayList<NameValuePair>();
 			logger.debug("server id :"+"["+s.getServer_id()+"]");
@@ -371,7 +416,14 @@ public class MirFactory {
 			CloseableHttpResponse suspendR = null;
 			try {
 				suspendR = MSUtil.httpClientPostUrl(headerMap, suspendUrl, params_list);
-				logger.info("suspend case, result:"+EntityUtils.toString(suspendR.getEntity()));
+				String resultBuffer = EntityUtils.toString(suspendR.getEntity());
+				logger.info("suspend case, result:"+resultBuffer);
+				ObjectMapper mapper = new ObjectMapper();
+				JsonNode node = mapper.readTree(resultBuffer);
+				boolean isSuccess = node.get("success").asBoolean();
+				if(!isSuccess){
+					failedNumber++;
+				}
 			} catch (Exception e) {
 				logger.error("when suspend case, request mir to suspend vitrual machine failed， farm id:"+cFarmId+"the virtual machine server id:"+s.getServer_id());
 				String listServersResult = WhiteholeFactory.getFailedMsg(params, "处理失败，挂起虚拟机失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
@@ -384,7 +436,11 @@ public class MirFactory {
 				e.printStackTrace();
 			}
 		}
-		result = WhiteholeFactory.getSuccessMsg(params, CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+		if(failedNumber > 0){
+			result =  WhiteholeFactory.getFailedMsg(params, "处理失败，存在至少一个虚拟机挂起失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+		}else{
+			result = WhiteholeFactory.getSuccessMsg(params, CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+		}
 		return result;
 	}
 	
@@ -395,9 +451,9 @@ public class MirFactory {
 		//add destination farm id
 		vp.setDestinationFarmId(String.valueOf(cFarmId));
 		//create mir request url
-		String listSSHkeyUrl = configuration.getMirConnectUrl()+"sshkeys/xListSshKeys?farmId="+cFarmId+"&page=1&start=0";
-		String terminateFarmUrl = configuration.getMirConnectUrl()+"farms/xTerminate";
-		String removeSSHKeyUrl = configuration.getMirConnectUrl()+"sshkeys/xRemove";
+		String listSSHkeyUrl = configuration.getMirBaseUrl()+"/mir/proxy/sshkeys/xListSshKeys?farmId="+cFarmId+"&page=1&start=0";
+		String terminateFarmUrl = configuration.getMirBaseUrl()+"/mir/proxy/farms/xTerminate";
+		String removeSSHKeyUrl = configuration.getMirBaseUrl()+"/mir/proxy/sshkeys/xRemove";
 		ResultObject robj= loginService.login(null,null);
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
 			String loginResult = WhiteholeFactory.getFailedMsg(p,"处理失败,原因是登录mir系统失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
@@ -503,9 +559,14 @@ public class MirFactory {
 		headerMap.put("X-Requested-Token", robj.getSpecialToken());
 		vp.setxSecurityKey(robj.getSecureKey());
 		vp.setSpecialToken(robj.getSpecialToken());
+		boolean b = virtualMachineStatusCheck.isAllInOneStatus(cFarmId, robj.getSecureKey(), robj.getSpecialToken(), CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE, taskStack.getId(), CaseProvider.VM_STATUS_SUSPENEDED);
+		if(!b){
+			logger.error("active case, have a vitrual machine is not suspend status, farm id:"+cFarmId);
+			return WhiteholeFactory.getFailedMsg(p, "处理失败,有虚拟机存在非挂起状态。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
+		}
 		//list servers
 		CloseableHttpResponse qRes = null;
-		String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+cFarmId+"&imageId=&limit=10&page=1&query=&start=0";
+		String queryUrl = configuration.getMirBaseUrl()+"/mir/proxy/servers/xListServers/?farmId="+cFarmId+"&imageId=&limit=10&page=1&query=&start=0";
 		String sInfoJson =null;
 		try {
 			qRes = MSUtil.httpClientGetUrl(headerMap, queryUrl);
@@ -533,14 +594,21 @@ public class MirFactory {
 			e.printStackTrace();
 			return listServersResult;
 		}
-		String activeUrl = configuration.getMirConnectUrl()+"servers/xResumeServers";
+		String activeUrl = configuration.getMirBaseUrl()+"/mir/proxy/servers/xResumeServers";
+		int failedNumber = 0 ;
 		for (ServerInfo s : servers.getData()) {
 			List<NameValuePair> params_list = new ArrayList<NameValuePair>();
 			params_list.add(new BasicNameValuePair("servers","[\""+s.getServer_id()+"\"]"));
 			CloseableHttpResponse activeR = null;
 			try {
 				activeR = MSUtil.httpClientPostUrl(headerMap, activeUrl, params_list);
-				logger.info("active case,result:"+EntityUtils.toString(activeR.getEntity()));
+				String resultBuffer = EntityUtils.toString(activeR.getEntity());
+				ObjectMapper mapper = new ObjectMapper();
+				JsonNode node = mapper.readTree(resultBuffer);
+				boolean isSuccess = node.get("success").asBoolean();
+				if(!isSuccess){
+					failedNumber++;
+				}
 				count++;
 			} catch (Exception e) {
 				logger.error("when active vitrual case, request mir to suspend vitrual machine failed， farm id:"+cFarmId);
@@ -556,7 +624,11 @@ public class MirFactory {
 		}
 		if(0 != total){ 
 			if(total == count){
-				result = CaseProvider.ACTIVE_FIRST_STEP; 
+				if(failedNumber > 0){
+					result = WhiteholeFactory.getFailedMsg(p, "处理失败，存在一个虚拟机激活失败", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
+				}else{
+					result = CaseProvider.ACTIVE_FIRST_STEP;
+				}
 			}else{
 				logger.warn("active number less than total");
 				result = WhiteholeFactory.getFailedMsg(p, "处理失败，原因是激活虚拟机数量异常", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
@@ -572,7 +644,7 @@ public class MirFactory {
 		String result = null;
 		Data data = new Data();
 		String instanceId = p.getData().getPayload().getInstance().getInstanceId();
-		logger.info("=====================启动事件,实例 ID: "+instanceId+"===============================");
+		logger.info("=====================查询事件,实例 ID: "+instanceId+"===============================");
 		logger.info("QUERY　CASE: the instance id---->"+instanceId);
 		logger.info("test the  taskResultDao--->"+taskResultDao==null);
 		TaskResult tr = taskResultDao.getOrderTaskResultById(instanceId);
@@ -588,7 +660,7 @@ public class MirFactory {
 		}
 		com.chinacloud.isv.entity.callbackparams.Process process = new com.chinacloud.isv.entity.callbackparams.Process();
 		Map<String,String> headerMap = new HashMap<String,String>();
-		String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+tr.getcFarmId()+"&imageId=&limit=10&page=1&query=&start=0";
+		String queryUrl = configuration.getMirBaseUrl()+"/mir/proxy/servers/xListServers/?farmId="+tr.getcFarmId()+"&imageId=&limit=10&page=1&query=&start=0";
 		//login
 		ResultObject robj= loginService.login(null,null);
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
@@ -670,8 +742,9 @@ public class MirFactory {
 	
 	public String rebootService(String cFarmId,Params p,TaskStack taskStack,VMQeuryParam vp){
 		String allRebootResult = null;
-		String rebootUrl =configuration.getMirConnectUrl()+"servers/xServerRebootServers";
-		String queryUrl = configuration.getMirConnectUrl()+"servers/xListServers/?farmId="+cFarmId+"&imageId=&limit=10&page=1&query=&start=0";
+		logger.info("=====================重启事件,farm ID: "+cFarmId+", task id:"+taskStack.getId()+"===============================");
+		String rebootUrl =configuration.getMirBaseUrl()+"/mir/proxy/servers/xServerRebootServers";
+		String queryUrl = configuration.getMirBaseUrl()+"/mir/proxy/servers/xListServers/?farmId="+cFarmId+"&imageId=&limit=10&page=1&query=&start=0";
 		vp.setDestinationFarmId(String.valueOf(cFarmId));
 		WhiteholeFactory wFactory = new WhiteholeFactory();
 		Map<String,String> headerMap = new HashMap<String,String>();
@@ -715,7 +788,7 @@ public class MirFactory {
 		}
 		ArrayList<ServerInfo> sList = s.getData();
 		for (int i = 0 ;i < Integer.parseInt(s.getTotal()); i++) {
-			if(!sList.get(i).getStatus().equals("Running")){
+			if(!sList.get(i).getStatus().equals(CaseProvider.VM_STATUS_RUNNING)){
 				flagNotRunning++;
 			}
 		}
@@ -768,8 +841,9 @@ public class MirFactory {
 		Map<String,String> headerMap = new HashMap<String,String>();
 		headerMap.put("X-Secure-Key", sercurity);
 		headerMap.put("X-Requested-Token", token);
-		String removeFarmUrl = configuration.getMirConnectUrl()+"farms/xRemove";
+		String removeFarmUrl = configuration.getMirBaseUrl()+"/mir/proxy/farms/xRemove";
 		List<NameValuePair> params_list = new ArrayList<NameValuePair>();
+		logger.warn("delete farm the farm id :"+cFarmId);
 		params_list.add(new BasicNameValuePair("farmId",String.valueOf(cFarmId)));
 		try {
 			CloseableHttpResponse response = MSUtil.httpClientPostUrl(headerMap, removeFarmUrl, params_list);

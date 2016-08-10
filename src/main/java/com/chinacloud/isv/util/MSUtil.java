@@ -171,7 +171,7 @@ public class MSUtil {
 				result.setDestinationFarmId(clonedFarmId);
 			}
 		} else {
-			result.setResultStatus("FAILED");
+			result.setResultStatus(CaseProvider.FAILED_STATUS);
 			result.setId(task.getId());
 			result.setRequestMethod(task.getRequestMethod());
 			result.setParams(r);
@@ -407,5 +407,33 @@ public class MSUtil {
 		orderRecord.setUsrName(vp.getUsrName());
 		orderRecord.setServiceTemplateName(vp.getServiceTemplateName());
 		return orderRecord;
+	}
+	/**
+	 * get directed value by key. not support array  
+	 * @param keys
+	 * @param json
+	 * @return
+	 */
+	public static JsonNode getDirectedValueFromJson(String [] keys,String json){
+		if(keys.length <= 0){
+			logger.error("when get directed value,the key is empty");
+			return null;
+		}
+		if(null == json || json.equals("")){
+			logger.error("when get directed value,the json is empty");
+			return null;
+		}
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode node = null;
+		try {
+			node = objectMapper.readTree(json);
+			for(int i = 0; i < keys.length ; i++){
+				node = node.get(keys[i]);
+			}
+		} catch (Exception e) {
+			logger.error("when get directed value,have a exception msg:"+e.getLocalizedMessage());
+			return null;
+		} 
+		return node;
 	}
 }

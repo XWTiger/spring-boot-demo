@@ -21,6 +21,7 @@ import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.entity.ResultObject;
 import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.util.MSUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 
 
 
@@ -28,19 +29,45 @@ import com.chinacloud.isv.util.MSUtil;
 @Scope
 public class LoginService {
 	ResultObject rObject = null;
-	int times = 0 ;
 	@Autowired
 	Configuration configuration;
+	@Autowired
+	MirGetContextService mirGetContextService;
 	
 	private static final Logger logger = LogManager.getLogger(LoginService.class);
 	
+	/**
+	 * login mir 
+	 * @param username
+	 * @param password
+	 * @return ResultObject
+	 */
 	  public ResultObject login(String username, String password){
 		  	if(null == username || null == password ){
 		  		username = configuration.getUserName();
 		  		password = configuration.getPassword();
-		  		if(times < configuration.getReLoginTimes() && null != rObject && rObject.getErrorMessage().equals("")){
-			  		times++;
-			  		return rObject;
+		  		if(null != rObject && rObject.isSuccess()==true && rObject.getErrorMessage().equals("")){
+			  		//check login
+		  			String context = mirGetContextService.getContext(rObject.getSecureKey(), rObject.getSpecialToken());
+		  			if(null ==  context){
+		  				logger.warn("when login, get context failed");
+		  			}else{
+		  				String [] keys = {"success"};
+		  				JsonNode node = MSUtil.getDirectedValueFromJson(keys, context);
+		  				if(null != node){
+		  					boolean b = node.asBoolean();
+		  					if(b){
+		  						String [] cKeys = {"flags","specialToken"};
+		  						JsonNode cNode =MSUtil.getDirectedValueFromJson(cKeys, context);
+		  						if(null != cNode){
+		  							if(!cNode.asText().equals("")){
+		  								return rObject;
+		  							}
+		  						}
+		  					}
+		  				}
+		  				
+		  			}
 			  	}
 		  	}
 		  	System.out.println("=========begin login mir==========");
@@ -50,7 +77,7 @@ public class LoginService {
 	            headers.put("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
 	            headers.put("X-Scalr-Interface", "v2");
 	            headers.put("X-Scalr-Token", "key");
-	            String url =configuration.getMirConnectUrl()+"guest/xLogin";
+	            String url =configuration.getMirBaseUrl()+"/mir/proxy/guest/xLogin";
 	            List<NameValuePair> data = new ArrayList<NameValuePair>();
 	            data.add(new BasicNameValuePair("scalrLogin", username));
 	            data.add(new BasicNameValuePair("scalrPass", password));
@@ -62,12 +89,9 @@ public class LoginService {
 	            String strRet = EntityUtils.toString(resp.getEntity());
 	            WhiteholeFactory whiteholeFactory = new WhiteholeFactory();
 	            rObject = whiteholeFactory.getEntity(ResultObject.class, strRet);
-	            logger.debug("securtiy key ======>"+secureKey[0].getValue());
 	            rObject.setSecureKey(secureKey[0].getValue());
-	            System.out.println("login --->strRet:"+strRet);
 	        } catch ( Exception e) {
-	           /* ret.setMessage("登录出现异常, " + e.getMessage());*/
-	            logger.error("登录mir平台出现异常, " + e.getMessage());
+	            logger.error("登录mir平台出现异常, " + e.getLocalizedMessage());
 	            rObject = new ResultObject();
 	            rObject.setSuccess(false);
 	            rObject.setErrorMessage("I can't login the mir platform");
@@ -78,7 +102,6 @@ public class LoginService {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-	        times++;
 	        return rObject;
 	    }
 	  

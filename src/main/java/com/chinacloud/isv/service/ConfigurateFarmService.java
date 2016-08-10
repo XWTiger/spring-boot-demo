@@ -45,7 +45,7 @@ public class ConfigurateFarmService {
 			return b;
 		}
 		//get the configuration
-		String infoUrl =  configuration.getMirConnectUrl()+"farms/"+cloneFarmId+"/edit";
+		String infoUrl =  configuration.getMirBaseUrl()+"/mir/proxy/farms/"+cloneFarmId+"/edit";
 		Map<String,String> headers = new HashMap<String,String>();
 		headers.put("X-Secure-Key", robj.getSecureKey());
 		headers.put("X-Requested-Token", robj.getSpecialToken());
@@ -77,7 +77,7 @@ public class ConfigurateFarmService {
 			e.printStackTrace();
 		}
 		//save configuration
-		String saveConfUrl = configuration.getMirConnectUrl()+"farms/builder/xBuild";
+		String saveConfUrl = configuration.getMirBaseUrl()+"/mir/proxy/farms/builder/xBuild";
 		String encodeStrFarm = confList[0];
 		String encodeStrRole = confList[1];
 		List<NameValuePair> params_list = new ArrayList<NameValuePair>();

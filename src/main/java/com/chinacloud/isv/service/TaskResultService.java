@@ -29,10 +29,11 @@ public class TaskResultService {
 	@Scheduled(fixedRate = 50000)
 	private void manageTaskResult(){
 		
-		logger.info("delete max number --->"+taskResultNumber);
+	
 		int number = taskResultDao.getCount();
-		logger.info("real number --->"+number);
 		if(number > taskResultNumber){
+			logger.info("real number --->"+number);
+			logger.info("delete max number --->"+taskResultNumber);
 			taskResultDao.deleteResult(Time);
 		}
 	}

@@ -49,7 +49,8 @@ public class OrderRecordService {
     	}
     	int pageNumber =  (int) Math.ceil(num/pageSize);
     	list = orderRecordDao.getList(serviceTemplateId,farmId, (page - 1) * pageSize, pageSize, orderBy, order);
-    	 map.put("pages", pageNumber);
+    	
+    	map.put("pages", pageNumber);
         map.put("totalCount",(int)num);
         map.put("list", list);
 		return map;
@@ -103,5 +104,12 @@ public class OrderRecordService {
 			b = false;
 		}
 		return b;
+	}
+	
+	public HashMap<Object, Object> getAllOrders(){
+		HashMap<Object, Object> map = new HashMap<>();
+		List<OrderRecord> list = orderRecordDao.getAllOrders();
+		map.put("list", list);
+		return map;
 	}
 }

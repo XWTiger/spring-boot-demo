@@ -71,8 +71,8 @@ public class TaskConsumeService {
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER:{
 							VMQeuryParam vParam = new VMQeuryParam();
 							//request mir server
+							result = mirFactory.orderService(taskStack.getFarmId(), taskStack,vParam);
 							try {
-								result = mirFactory.orderService(taskStack.getFarmId(), taskStack,vParam);
 								if(result.contains("Farm successfully launched")){//TODO maybe update.
 									vParam.setCallbackUrl(params.getData().getCallBackUrl());
 									vtrualMachineQuery.addQueryTask(vParam);
@@ -83,7 +83,7 @@ public class TaskConsumeService {
 									map.put("Content-Type", "application/json");
 									logger.info("call back url: "+params.getData().getCallBackUrl());
 									String newResult = MSUtil.encode(result);
-									logger.info("the new post result==========>"+newResult);
+									logger.info("the order case result==========>"+result);
 									CloseableHttpResponse response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
 									HttpEntity entity = response.getEntity();
 									String callBackResponse = EntityUtils.toString(entity);
@@ -99,9 +99,16 @@ public class TaskConsumeService {
 									taskResultDao.addResult(taskResult);
 								}
 							} catch (Exception e) {
-								logger.error("Order case,Consume task error\n"+e.getLocalizedMessage());
+								logger.error("Order case,farm id :"+vParam.getcFarmId()+", instance id :"+taskStack.getId()+",Consume task error\n"+e.getLocalizedMessage());
+								//remove cloned farm 
+								boolean removeStatus = mirFactory.removeCloneFarm(vParam.getcFarmId(), vParam.getxSecurityKey(), vParam.getSpecialToken());
+								if(removeStatus){
+									logger.info("order case, farm id:"+vParam.getcFarmId()+",roll back success");
+								}else{
+									logger.info("order case, farm id:"+vParam.getcFarmId()+",roll back failed");
+								}
 								//unlock the task
-								unlockService.unlockMission(taskStack);
+								//unlockService.unlockMission(taskStack);
 								e.printStackTrace();
 							}
 							break;
@@ -226,6 +233,7 @@ public class TaskConsumeService {
 								break;
 							}
 							if(result.equals(CaseProvider.ACTIVE_FIRST_STEP)){
+								logger.info("================active case,farm id :"+vmQeuryParam.getcFarmId()+",will go to query status line=====================");
 								vmQeuryParam.setCallbackUrl(taskStack.getCallBackUrl());
 								vmQeuryParam.setcFarmId(tr.getcFarmId());
 								vmQeuryParam.setEnventId(params.getData().getEventId());
@@ -271,6 +279,7 @@ public class TaskConsumeService {
 							}
 							result = mirFactory.rebootService(String.valueOf(tr.getcFarmId()), params, taskStack,vmQeuryParam);
 							if(result.contains("process")){
+								logger.info("************** failed**********************");
 								Map<String,String> map = new HashMap<String,String >();
 								map.put("Content-Type", "application/json;charset=utf-8");
 								String newResult = MSUtil.encode(result);
@@ -280,13 +289,14 @@ public class TaskConsumeService {
 									//remove the task
 								} catch (Exception e) {
 									logger.error("reboot case,response order result failed");
-									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
+									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT);
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult2);
 									e.printStackTrace();
 								}
 							}else{
+								logger.info("************** go to reboot status line**********************");
 								vmQeuryParam.setCallbackUrl(taskStack.getCallBackUrl());
 								vmQeuryParam.setcFarmId(tr.getcFarmId());
 								vmQeuryParam.setEnventId(params.getData().getEventId());

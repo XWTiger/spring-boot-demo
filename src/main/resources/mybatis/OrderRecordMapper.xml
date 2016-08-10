@@ -17,9 +17,7 @@
       order by ${orderBy} ${order}
     </if>
     <!-- order by creation_time desc -->
-    <if test="serviceTemplateId != null or farmId != null">
     limit #{limit} offset #{offset}
-    </if>
   </select>
 
   <delete id="deleteByCloneFarmId">
@@ -42,4 +40,8 @@
     insert into OrderRecord(id,sysName,modelFarmId,cFarmId,usrName,serviceTemplateId,serviceTemplateName,addTime) 
     values (#{id},#{sysName},#{modelFarmId},#{cFarmId},#{usrName},#{serviceTemplateId},#{serviceTemplateName},now())
   </insert>
+  
+  <select id="getAllOrders" resultType="com.chinacloud.isv.domain.OrderRecord">
+    select * from OrderRecord;
+  </select>
 </mapper>

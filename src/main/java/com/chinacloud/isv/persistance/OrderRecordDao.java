@@ -12,4 +12,5 @@ public interface OrderRecordDao {
 	public Integer deleteByCloneFarmId(String clonedFarmId);
 	public Integer addRecord(OrderRecord or);
 	public Integer cout(@Param("serviceTemplateId")String serviceTemplateId,@Param("farmId")String farmId);
+	public List<OrderRecord> getAllOrders();
 }

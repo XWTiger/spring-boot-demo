@@ -43,6 +43,11 @@ public class MSController {
 		logger.info("=======query order service instance====serviece id:"+serviceId);
 		return orderRecordService.getRecordList(serviceId,farmId, page, pageSize, orderBy, order);
 	}
+	@ResponseBody
+	@RequestMapping(value="/isv/all_orders",method=RequestMethod.GET)
+	public HashMap<Object, Object> getAllOrderRecordList(){
+		return orderRecordService.getAllOrders();
+	}
 	
 	@ResponseBody
 	@RequestMapping(value="/isv/instances",method=RequestMethod.POST)

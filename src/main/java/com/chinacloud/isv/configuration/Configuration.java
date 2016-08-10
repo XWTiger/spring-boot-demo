@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "mir")
 public class Configuration {
 
-	@Value("${mir.connectUrl}")
-	private String mirConnectUrl;
+
 	@Value("${mir.reLoginTimes}")
 	private int reLoginTimes;
 	@Value("${mir.serverQueryOutTime}")
@@ -21,10 +20,10 @@ public class Configuration {
 	private String userName;
 	@Value("${mir.password}")
 	private String password;
-	@Value("${mir.serviceTemplateUrl}")
-	private String serviceTemplateUrl;
 	@Value("${mir.moreOperateUrl}")
 	private String mirMoreOperateUrl;
+	@Value("${mir.baseUrl}")
+	private String mirBaseUrl;
 	
 	public String getUserName() {
 		return userName;
@@ -41,15 +40,6 @@ public class Configuration {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
-	public String getMirConnectUrl() {
-		return mirConnectUrl;
-	}
-
-	public void setMirConnectUrl(String mirConnectUrl) {
-		this.mirConnectUrl = mirConnectUrl;
-	}
-
 	public int getReLoginTimes() {
 		return reLoginTimes;
 	}
@@ -66,20 +56,21 @@ public class Configuration {
 		this.timeOut = timeOut;
 	}
 
-	public String getServiceTemplateUrl() {
-		return serviceTemplateUrl;
-	}
-
-	public void setServiceTemplateUrl(String serviceTemplateUrl) {
-		this.serviceTemplateUrl = serviceTemplateUrl;
-	}
-
+	
 	public String getMirMoreOperateUrl() {
 		return mirMoreOperateUrl;
 	}
 
 	public void setMirMoreOperateUrl(String mirMoreOperateUrl) {
 		this.mirMoreOperateUrl = mirMoreOperateUrl;
+	}
+
+	public String getMirBaseUrl() {
+		return mirBaseUrl;
+	}
+
+	public void setMirBaseUrl(String mirBaseUrl) {
+		this.mirBaseUrl = mirBaseUrl;
 	}
 	
 }

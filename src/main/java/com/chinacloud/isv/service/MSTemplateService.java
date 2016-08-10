@@ -31,7 +31,7 @@ public class MSTemplateService {
 		boolean b = true;
 		//call the interface and get status
 		logger.info("serviceTemplateId :"+serviceTemplateId);
-		logger.debug("template url:"+configuration.getServiceTemplateUrl());
+		logger.debug("template url:"+configuration.getMirBaseUrl()+"/mir/extend/service/getServiceTemplateInfo/"+serviceTemplateId);
 		ResultObject robj= loginService.login(null, null);
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
 			logger.error("login mir plateform failed");
@@ -42,7 +42,7 @@ public class MSTemplateService {
 		map.put("Content-Type", "application/json");
 		map.put("X-Secure-Key", robj.getSecureKey());
 		map.put("X-Requested-Token", robj.getSpecialToken());
-		String url = configuration.getServiceTemplateUrl()+"/"+serviceTemplateId;
+		String url = configuration.getMirBaseUrl()+"/mir/extend/service/getServiceTemplateInfo/"+serviceTemplateId;
 		CloseableHttpResponse response = null;
 		try {
 			response = MSUtil.httpClientGetUrl(map, url);

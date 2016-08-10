@@ -97,14 +97,14 @@ public class WhiteholeFactory {
 		Process process = new Process();
 		String result = null;
 		data.setSuccess(false);
-		data.setErrorCode("10001");
+		data.setErrorCode(CaseProvider.ERROR_CODE);
 		//data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL)+"处理失败,原因是删除应用堆栈SSH KEY 失败。");
 		data.setMessage(MSUtil.getChineseName(caseType)+msgTail);
 		process.setEventId(p.getData().getEventId());
 		logger.debug("the case===>"+caseType);
 		if(!caseType.equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER))
 		process.setInstanceId(p.getData().getPayload().getInstance().getInstanceId());
-		process.setStatus("FAILED");
+		process.setStatus(CaseProvider.FAILED_STATUS);
 		data.setProcess(process);
 		try {
 			result = WhiteholeFactory.getJsonString(data);
@@ -129,7 +129,7 @@ public class WhiteholeFactory {
 		data.setMessage(MSUtil.getChineseName(type)+"处理成功");
 		process.setEventId(p.getData().getEventId());
 		process.setInstanceId(p.getData().getPayload().getInstance().getInstanceId());
-		process.setStatus("SUCCESS");
+		process.setStatus(CaseProvider.SUCESS_STATUS);
 		data.setProcess(process);
 		try {
 			result = WhiteholeFactory.getJsonString(data);
