@@ -105,11 +105,30 @@ public class OrderRecordService {
 		}
 		return b;
 	}
-	
+	/**
+	 * get all orders
+	 * @return hash map
+	 */
 	public HashMap<Object, Object> getAllOrders(){
 		HashMap<Object, Object> map = new HashMap<>();
 		List<OrderRecord> list = orderRecordDao.getAllOrders();
 		map.put("list", list);
+		return map;
+	}
+	/**
+	 * check if the tenant have the farm that is given farmid
+	 * @param farmId
+	 * @param tenantId
+	 * @return
+	 */
+	public HashMap<Object, Object> checkOrder(String farmId,String tenantId){
+		Integer flag = orderRecordDao.checkOrder(farmId, tenantId);
+		HashMap<Object, Object> map = new HashMap<>();
+		if(null == flag){
+			map.put("status", false);
+		}else{
+			map.put("status", true);
+		}
 		return map;
 	}
 }

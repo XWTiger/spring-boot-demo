@@ -31,6 +31,7 @@ create table if not exists TaskResult
    resultStatus             varchar(64) not null,
    info                     text,
    addTime                  timestamp  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   envId                    varchar(255),
    destinationFarmId text,
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -43,6 +44,7 @@ create table if not exists OrderRecord
    usrName                  varchar(255),
    serviceTemplateId       varchar(255),
    serviceTemplateName       varchar(255),
+   tenantId                  varchar(255) not null,
    addTime                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

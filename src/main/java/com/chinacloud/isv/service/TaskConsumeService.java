@@ -89,7 +89,7 @@ public class TaskConsumeService {
 									String callBackResponse = EntityUtils.toString(entity);
 									logger.info("response entity content--->"+callBackResponse);
 									response.close();
-									taskResult = MSUtil.getTaskResult(1, taskStack,vParam.getParams(),callBackResponse,vParam.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
+									taskResult = MSUtil.getTaskResult(1, taskStack,vParam.getParams(),callBackResponse,vParam.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER,vParam.getEnvId());
 									//add order service instance row
 									if(!result.contains("\"success\":false")){
 										orderRecordDao.addRecord(MSUtil.getOrderRecordInstance(vParam));
@@ -126,7 +126,7 @@ public class TaskConsumeService {
 								HttpEntity entity = cancelResponse.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
+								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL,null);
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 							}
@@ -153,7 +153,7 @@ public class TaskConsumeService {
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
 								//add result
-								taskResult = MSUtil.getTaskResult(0, taskStack, result,comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
+								taskResult = MSUtil.getTaskResult(0, taskStack, result,comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL,tr.getEnvId());
 								//delete the row record of task and the order case result
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.deleteResultById(instanceId);
@@ -161,7 +161,7 @@ public class TaskConsumeService {
 								} catch (Exception e) {
 									logger.error("Consume task error\n"+e.getMessage());
 									//add result
-									taskResult = MSUtil.getTaskResult(0, taskStack, result,e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
+									taskResult = MSUtil.getTaskResult(0, taskStack, result,e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL,tr.getEnvId());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult);
@@ -182,7 +182,7 @@ public class TaskConsumeService {
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("suspend case,response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND,null);
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 								break;
@@ -196,13 +196,13 @@ public class TaskConsumeService {
 							CloseableHttpResponse response = WhiteholeFactory.callBackReturnResult(suspendResult, params);
 							if(null == response){
 								logger.error("suspend case, call back return result failed");
-								taskResult = MSUtil.getTaskResult(0, taskStack, result, "call back return result is null",tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+								taskResult = MSUtil.getTaskResult(0, taskStack, result, "call back return result is null",tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND,tr.getEnvId());
 							}else{
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
 								//add result
-								taskResult = MSUtil.getTaskResult(1, taskStack, suspendResult, comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND);
+								taskResult = MSUtil.getTaskResult(1, taskStack, suspendResult, comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND,tr.getEnvId());
 							}
 							riskStackDao.deleteTask(taskStack.getId());
 							taskResultDao.addResult(taskResult);
@@ -224,7 +224,7 @@ public class TaskConsumeService {
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, activeResponse, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
+								taskResult = MSUtil.getTaskResult(0, taskStack, activeResponse, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE,null);
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 							}
@@ -247,13 +247,13 @@ public class TaskConsumeService {
 								CloseableHttpResponse response = WhiteholeFactory.callBackReturnResult(result, params);
 								if(null == response){
 									logger.error("suspend case, call back return result failed");
-									taskResult = MSUtil.getTaskResult(0, taskStack, result, "call back return result is null",tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
+									taskResult = MSUtil.getTaskResult(0, taskStack, result, "call back return result is null",tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE,tr.getEnvId());
 								}else{
 									HttpEntity entity = response.getEntity();
 									String comebackResult = EntityUtils.toString(entity);
 									logger.info("response entity content--->"+comebackResult);
 									//add result
-									taskResult = MSUtil.getTaskResult(1, taskStack, result, comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE);
+									taskResult = MSUtil.getTaskResult(1, taskStack, result, comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE,tr.getEnvId());
 								}
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
@@ -273,13 +273,13 @@ public class TaskConsumeService {
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT);
+								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT,null);
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 							}
 							result = mirFactory.rebootService(String.valueOf(tr.getcFarmId()), params, taskStack,vmQeuryParam);
 							if(result.contains("process")){
-								logger.info("************** failed**********************");
+								logger.info("**************reboot failed**********************");
 								Map<String,String> map = new HashMap<String,String >();
 								map.put("Content-Type", "application/json;charset=utf-8");
 								String newResult = MSUtil.encode(result);
@@ -289,7 +289,7 @@ public class TaskConsumeService {
 									//remove the task
 								} catch (Exception e) {
 									logger.error("reboot case,response order result failed");
-									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT);
+									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT,tr.getEnvId());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult2);
@@ -322,7 +322,7 @@ public class TaskConsumeService {
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("suspend case,response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH);
+								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH,null);
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 								break;
@@ -344,7 +344,7 @@ public class TaskConsumeService {
 									response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
 								} catch (Exception e) {
 									logger.error("lauch case,response order result failed");
-									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, launchResult, e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH);
+									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, launchResult, e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH,tr.getEnvId());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult2);
@@ -354,7 +354,7 @@ public class TaskConsumeService {
 								String callBackResponse = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+callBackResponse);
 								response.close();
-								taskResult = MSUtil.getTaskResult(1, taskStack,launchResult,callBackResponse,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH);
+								taskResult = MSUtil.getTaskResult(1, taskStack,launchResult,callBackResponse,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH,tr.getEnvId());
 								//delete the row record of task 
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);

@@ -49,6 +49,10 @@ public class MSController {
 		return orderRecordService.getAllOrders();
 	}
 	
+	public HashMap<Object, Object> inTenant(@RequestParam("farm_id") String farmId,@RequestParam("tenant_id") String tenantId){
+		return orderRecordService.checkOrder(farmId, tenantId);
+	}
+	
 	@ResponseBody
 	@RequestMapping(value="/isv/instances",method=RequestMethod.POST)
 	public HashMap<Object, Object>  getServiceTemplateInstanceNum(@RequestBody HashMap<String, Object> templatIdList){

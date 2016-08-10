@@ -11,6 +11,7 @@ public class TaskResult {
 	private String addTime;
 	private String requestUrl;
 	private String destinationFarmId;
+	private String envId;
 	
 	public String getId() {
 		return id;
@@ -66,4 +67,11 @@ public class TaskResult {
 	public void setDestinationFarmId(String destinationFarmId) {
 		this.destinationFarmId = destinationFarmId;
 	}
+	public String getEnvId() {
+		return envId;
+	}
+	public void setEnvId(String envId) {
+		this.envId = envId;
+	}
+	
 }

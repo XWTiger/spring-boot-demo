@@ -81,6 +81,7 @@ public class MirFactory {
 			vp.setUsrName(params.getData().getCreator().getEmail());
 			vp.setModelFarmId(farmId);
 			vp.setSystem(params.getData().getMarketplace().getPartner());
+			vp.setTenantId(params.getData().getPayload().getTenant().getId());
 		} catch (Exception e) {
 			logger.error("order case,convert string to object failed. task id: "+taskStack.getId());
 			e.printStackTrace();

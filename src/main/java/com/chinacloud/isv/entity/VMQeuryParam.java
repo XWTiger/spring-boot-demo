@@ -20,6 +20,8 @@ public class VMQeuryParam {
 	private int totalInstance;//a farm have virtual machine total number
 	private String params;//this is order case's parameters
 	private String serviceTemplateName;
+	private String envId;//scalr environment id
+	private String tenantId;
 	//the instance id is order case result id
 	
 	
@@ -142,4 +144,17 @@ public class VMQeuryParam {
 	public void setServiceTemplateName(String serviceTemplateName) {
 		this.serviceTemplateName = serviceTemplateName;
 	}
+	public String getEnvId() {
+		return envId;
+	}
+	public void setEnvId(String envId) {
+		this.envId = envId;
+	}
+	public String getTenantId() {
+		return tenantId;
+	}
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+	
 }

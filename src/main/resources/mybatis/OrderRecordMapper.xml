@@ -37,11 +37,15 @@
   </select>
 
   <insert id="addRecord">
-    insert into OrderRecord(id,sysName,modelFarmId,cFarmId,usrName,serviceTemplateId,serviceTemplateName,addTime) 
-    values (#{id},#{sysName},#{modelFarmId},#{cFarmId},#{usrName},#{serviceTemplateId},#{serviceTemplateName},now())
+    insert into OrderRecord(id,sysName,modelFarmId,cFarmId,usrName,serviceTemplateId,serviceTemplateName,addTime,tenantId) 
+    values (#{id},#{sysName},#{modelFarmId},#{cFarmId},#{usrName},#{serviceTemplateId},#{serviceTemplateName},now(),#{tenantId})
   </insert>
   
   <select id="getAllOrders" resultType="com.chinacloud.isv.domain.OrderRecord">
     select * from OrderRecord;
+  </select>
+  
+  <select id="checkOrder" resultType="Integer">
+    select count(*)  from OrderRecord where cFarmId=#{farmId} and tenantId=#{tenantId}
   </select>
 </mapper>

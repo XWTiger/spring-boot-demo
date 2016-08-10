@@ -21,7 +21,6 @@ import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.entity.ResultObject;
 import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.util.MSUtil;
-import com.fasterxml.jackson.databind.JsonNode;
 
 
 
@@ -48,7 +47,7 @@ public class LoginService {
 		  		password = configuration.getPassword();
 		  		if(null != rObject && rObject.isSuccess()==true && rObject.getErrorMessage().equals("")){
 			  		//check login
-		  			String context = mirGetContextService.getContext(rObject.getSecureKey(), rObject.getSpecialToken());
+		  			/*String context = mirGetContextService.getContext(rObject.getSecureKey(), rObject.getSpecialToken());
 		  			if(null ==  context){
 		  				logger.warn("when login, get context failed");
 		  			}else{
@@ -67,7 +66,7 @@ public class LoginService {
 		  					}
 		  				}
 		  				
-		  			}
+		  			}*/
 			  	}
 		  	}
 		  	System.out.println("=========begin login mir==========");

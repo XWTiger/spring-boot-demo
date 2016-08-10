@@ -155,7 +155,7 @@ public class MSUtil {
 	 * @param task
 	 * @return
 	 */
-	public static TaskResult getTaskResult(int type, TaskStack task, String r, String comebackResult,String clonedFarmId,String caseType) {
+	public static TaskResult getTaskResult(int type, TaskStack task, String r, String comebackResult,String clonedFarmId,String caseType,String envId) {
 		TaskResult result = new TaskResult();
 		if (1 == type) {
 			result.setResultStatus("SUCCESS");
@@ -164,6 +164,7 @@ public class MSUtil {
 			result.setParams(r);
 			result.setInfo(comebackResult);
 			result.setRequestUrl(task.getCallBackUrl());
+			result.setEnvId(envId);
 			if(caseType.equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)){
 				result.setcFarmId(clonedFarmId);
 				result.setDestinationFarmId(task.getFarmId());
@@ -177,6 +178,7 @@ public class MSUtil {
 			result.setParams(r);
 			result.setRequestUrl(task.getCallBackUrl());
 			result.setDestinationFarmId(clonedFarmId);
+			result.setEnvId(envId);
 			result.setInfo("call back return result failed,farm id:"+clonedFarmId +", errorMsg:"+ comebackResult);
 		}
 		return result;
@@ -406,6 +408,7 @@ public class MSUtil {
 		orderRecord.setModelFarmId(vp.getModelFarmId());
 		orderRecord.setUsrName(vp.getUsrName());
 		orderRecord.setServiceTemplateName(vp.getServiceTemplateName());
+		orderRecord.setTenantId(vp.getTenantId());
 		return orderRecord;
 	}
 	/**

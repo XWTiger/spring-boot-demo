@@ -10,7 +10,7 @@ public class OrderRecord {
 	private String usrName;
 	private String addTime;
 	private String serviceTemplateName;
-	
+	private String tenantId;//oneaa
 	
 	public String getId() {
 		return id;
@@ -60,4 +60,11 @@ public class OrderRecord {
 	public void setServiceTemplateName(String serviceTemplateName) {
 		this.serviceTemplateName = serviceTemplateName;
 	}
+	public String getTenantId() {
+		return tenantId;
+	}
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+	
 }
