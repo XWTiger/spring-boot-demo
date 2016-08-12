@@ -121,10 +121,26 @@ public class OrderRecordService {
 	 * @param tenantId
 	 * @return
 	 */
-	public HashMap<Object, Object> checkOrder(String farmId,String tenantId){
-		Integer flag = orderRecordDao.checkOrder(farmId, tenantId);
+	public HashMap<Object, Object> checkOrder(String farmId,ArrayList<String> tenants){
+		Integer flag = null;
+		if(null == farmId){
+			throw new IllegalArgumentException("farmId 不能为空");
+		}
+		if(null == tenants){
+			throw new IllegalArgumentException("租户队列不能为空");
+		}
+		if( tenants.size() <= 0){
+			throw new IllegalArgumentException("租户队列大小为0");
+		}
+		
+		String  tenantId = orderRecordDao.getTenantIdByFarmId(farmId);
 		HashMap<Object, Object> map = new HashMap<>();
-		if(null == flag){
+		for (String id : tenants) {
+			if(id.equals(tenantId)){
+				flag = 1;
+			}
+		}
+		if(null == flag || 0 >= flag){
 			map.put("status", false);
 		}else{
 			map.put("status", true);

@@ -49,8 +49,12 @@ public class MSController {
 		return orderRecordService.getAllOrders();
 	}
 	
-	public HashMap<Object, Object> inTenant(@RequestParam("farm_id") String farmId,@RequestParam("tenant_id") String tenantId){
-		return orderRecordService.checkOrder(farmId, tenantId);
+	@ResponseBody
+	@RequestMapping(value="/isv/order_auth",method=RequestMethod.POST)
+	public HashMap<Object, Object> inTenant(@RequestBody HashMap<String, Object>  tenants){
+		@SuppressWarnings("unchecked")
+		ArrayList<String> tenantList = (ArrayList<String>)tenants.get("tenantList");
+		return orderRecordService.checkOrder((String)tenants.get("farmId"),tenantList);
 	}
 	
 	@ResponseBody

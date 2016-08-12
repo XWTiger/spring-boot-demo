@@ -122,6 +122,7 @@ public class TaskConsumeService {
 							if(null == tr){
 								logger.error("when do cancle case,get clone farm id failed because of database return null");
 								String  Response = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是克隆的应用堆栈已经被删除。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL);
+								logger.info("cancle case,get instanceid is null,call back return result:"+Response);
 								CloseableHttpResponse cancelResponse  = WhiteholeFactory.callBackReturnResult(Response, params);
 								HttpEntity entity = cancelResponse.getEntity();
 								String comebackResult = EntityUtils.toString(entity);

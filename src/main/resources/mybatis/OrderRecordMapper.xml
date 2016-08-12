@@ -45,7 +45,7 @@
     select * from OrderRecord;
   </select>
   
-  <select id="checkOrder" resultType="Integer">
-    select count(*)  from OrderRecord where cFarmId=#{farmId} and tenantId=#{tenantId}
+  <select id="getTenantIdByFarmId" resultType="String">
+    select  tenantId from OrderRecord where cFarmId=#{farmId}
   </select>
 </mapper>

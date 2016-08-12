@@ -12,8 +12,7 @@ import org.springframework.stereotype.Component;
 public class Configuration {
 
 
-	@Value("${mir.reLoginTimes}")
-	private int reLoginTimes;
+	
 	@Value("${mir.serverQueryOutTime}")
 	private int timeOut;
 	@Value("${mir.userName}")
@@ -40,14 +39,7 @@ public class Configuration {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public int getReLoginTimes() {
-		return reLoginTimes;
-	}
-
-	public void setReLoginTimes(int reLoginTimes) {
-		this.reLoginTimes = reLoginTimes;
-	}
-
+	
 	public int getTimeOut() {
 		return timeOut;
 	}
