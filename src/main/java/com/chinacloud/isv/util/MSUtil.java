@@ -439,4 +439,23 @@ public class MSUtil {
 		} 
 		return node;
 	}
+	
+	/**
+	 * get result instance 
+	 * type not 0 success, 0 filed
+	 * @return
+	 */
+	public static TaskResult getResultInstance(String id,String status,String requestMthod,String requestResponse,String cFarmId,String callBackUrl,String parameters,String destinationFarmId){
+		TaskResult tResult = new TaskResult();
+		tResult.setResultStatus(status);
+		tResult.setId(id);
+		tResult.setRequestMethod(requestMthod);
+		tResult.setParams(parameters);
+		tResult.setInfo(requestResponse);
+		tResult.setcFarmId(cFarmId);
+		logger.debug("===========cFarmId=======>"+cFarmId+"===destinationFarmId==>"+destinationFarmId);
+		tResult.setDestinationFarmId(destinationFarmId);
+		tResult.setRequestUrl(callBackUrl);
+		return tResult;
+	}
 }

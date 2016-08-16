@@ -12,6 +12,11 @@ public class CaseProvider {
 	public static final String EVENT_TYPE_WAIT_FOR_RESULT = "WAIT_FOR_RESULT";
 	public static final String EVENT_TYPE_WAIT_FOR_RESULT_MESSAGE = "正在处理中";
 	
+	public static final int EVENT_NUMBER_TYPE_REBOOT = 3;
+	public static final int EVENT_NUMBER_TYPE_ACTIVE = 2;
+	public static final int EVENT_NUMBER_TYPE_CANCEL = 1;
+	public static final int EVENT_NUMBER_TYPE_LAUNCH = 0;
+	
 	public static final String ACTIVE_FIRST_STEP = "SUCCESS";
 	public static final String REBOOT_FIRST_STEP = "SUCCESS";
 	public static final String SUCESS_STATUS = "SUCCESS";
