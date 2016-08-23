@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.entity.ResultObject;
+import com.chinacloud.isv.entity.mirtemplate.ServiceTemplateEntity;
+import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.util.MSUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,4 +72,20 @@ public class MSTemplateService {
 		return b;
 	}
 
+	public ServiceTemplateEntity getServiceTempalteEntity(String serviceTemplateId){
+		String url = configuration.getMirBaseUrl()+"/mir/extend/service/getServiceTemplateInfo/"+serviceTemplateId;
+		CloseableHttpResponse response = null;
+		try {
+			response = MSUtil.httpClientGetUrl(null, url);
+			String reponseStr =EntityUtils.toString(response.getEntity());
+			logger.info("service template info: "+reponseStr);
+			WhiteholeFactory wFactory =new WhiteholeFactory();
+			ServiceTemplateEntity sTemplateEntity = wFactory.getEntity(ServiceTemplateEntity.class, reponseStr);
+			return sTemplateEntity;
+		} catch (Exception e) {
+			logger.error("order case, get service template entity failed,errorMsg: "+e.getLocalizedMessage());
+			e.printStackTrace();
+			return null;
+		}
+	}
 }

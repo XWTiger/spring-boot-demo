@@ -21,6 +21,7 @@ public class CaseProvider {
 	public static final String REBOOT_FIRST_STEP = "SUCCESS";
 	public static final String SUCESS_STATUS = "SUCCESS";
 	public static final String STATUS_TIME_OUT = "TIME OUT";
+	public static final String STATUS_DEAD_LOCK = "DEAD LOCK"; 
 	public static final String FAILED_STATUS = "FAILD";
 	public static final String ERROR_CODE = "10001";
 	public static final String HTTP_STATUS_POST = "POST";

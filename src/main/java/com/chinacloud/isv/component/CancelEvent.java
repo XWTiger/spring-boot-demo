@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.domain.TaskResult;
@@ -57,7 +58,7 @@ public class CancelEvent {
 		this.headerMap = headerMap;
 		this.queryUrl = queryUrl;
 	}
-
+	@Transactional
 	public void go() {
 		Data data = new Data();
 		Process process = new Process();
@@ -158,7 +159,7 @@ public class CancelEvent {
 			// delete the row record of task and the order case result
 			riskStackDao.deleteTask(vp.getTaskId());
 			// delete order case result
-			logger.info("cancle case,delete order case result raw,instance id:" + vp.getInstanceId());
+			logger.info("cancle case,delete order case result raw,instance id:" + vp.getInstanceId(),"farm id :"+vp.getcFarmId());
 			orderRecordDao.deleteByCloneFarmId(vp.getcFarmId());
 			taskResultDao.deleteResultById(vp.getInstanceId());
 			taskResultDao.addResult(taskResult);

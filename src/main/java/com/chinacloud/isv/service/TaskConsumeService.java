@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.chinacloud.isv.component.VtrualMachineQuery;
 import com.chinacloud.isv.domain.TaskResult;
@@ -31,6 +32,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 @Service
+@Transactional
 public class TaskConsumeService {
 	private static final Logger logger = LogManager.getLogger(TaskConsumeService.class);
 	@Autowired
@@ -107,8 +109,6 @@ public class TaskConsumeService {
 								}else{
 									logger.info("order case, farm id:"+vParam.getcFarmId()+",roll back failed");
 								}
-								//unlock the task
-								//unlockService.unlockMission(taskStack);
 								e.printStackTrace();
 							}
 							break;
@@ -302,7 +302,7 @@ public class TaskConsumeService {
 								vmQeuryParam.setcFarmId(tr.getcFarmId());
 								vmQeuryParam.setEnventId(params.getData().getEventId());
 								vmQeuryParam.setTaskId(taskStack.getId());
-								vmQeuryParam.setType(3);
+								vmQeuryParam.setType(CaseProvider.EVENT_NUMBER_TYPE_REBOOT);
 								vmQeuryParam.setInstanceId(instanceId);
 								vmQeuryParam.setBeginTime(new Date().getTime());
 								vtrualMachineQuery.addQueryTask(vmQeuryParam);

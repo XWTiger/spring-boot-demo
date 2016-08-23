@@ -31,4 +31,12 @@
      <update id="addRepeageTimesById" >
         update TaskStack set repeatTimes=#{repeatTimes} where id = #{id}
      </update>
+     
+     <select id="getTasksByTime" resultType="com.chinacloud.isv.domain.TaskStack">
+        select * from TaskStack 
+        <where>
+            lockTask = 1 and TO_DAYS(now())-TO_DAYS(addTime)>#{time}
+        </where>
+     </select>
+     
 </mapper>

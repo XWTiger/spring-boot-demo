@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.domain.TaskResult;
@@ -50,7 +51,7 @@ public class ActiveEvent {
 		this.headerMap = headerMap;
 		this.queryUrl = queryUrl;
 	}
-	
+	@Transactional
 	public void go(){
 		Data data = new Data();
 		Process process = new Process();

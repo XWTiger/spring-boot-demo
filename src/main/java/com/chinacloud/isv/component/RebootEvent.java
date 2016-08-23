@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.domain.TaskResult;
@@ -45,7 +46,7 @@ public class RebootEvent {
 	public void addParameters(VMQeuryParam vp){
 		this.vp = vp;
 	}
-	
+	@Transactional
 	public void go(){
 		Data data = new Data();
 		Process process = new Process();

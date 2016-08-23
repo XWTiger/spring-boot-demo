@@ -14,5 +14,5 @@ public interface TaskStackDao {
 	public Integer unLockTask(String id);
 	public Integer getRepeatTimesById(String id);
 	public Integer addRepeageTimesById(@Param("id") String id,@Param("repeatTimes") int repeatTimes);
-	
+	public ArrayList<TaskStack> getTasksByTime(int time);
 }

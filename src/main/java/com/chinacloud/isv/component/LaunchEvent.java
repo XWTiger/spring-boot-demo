@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.domain.TaskResult;
@@ -55,7 +56,7 @@ public class LaunchEvent {
 		this.headerMap = headerMap;
 		this.queryUrl = queryUrl;
 	}
-	
+	@Transactional
 	public void go(){
 		Data data = new Data();
 		Process process = new Process();
@@ -181,7 +182,7 @@ public class LaunchEvent {
 					logger.error("after call back return result,get resopnse error\n"+e.getLocalizedMessage());
 					e.printStackTrace();
 				}
-				TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, respCall, vp.getcFarmId(), vp.getCallbackUrl(), result,vp.getDestinationFarmId());
+				TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, respCall, "0", vp.getCallbackUrl(), result,vp.getDestinationFarmId());
 				//delete the row record of task 
 				riskStackDao.deleteTask(vp.getTaskId());
 				taskResultDao.addResult(taskResult);
