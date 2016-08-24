@@ -76,7 +76,7 @@ public class LaunchEvent {
 			if(!isR){
 				//check time 
 				if(vtrualMachineQuery.timeOutCheck(vp)){
-					TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Order Case,Farm Id"+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId());
+					TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Order Case,Farm Id"+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId(),vp.getEventType());
 					riskStackDao.deleteTask(vp.getTaskId());
 					taskResultDao.addResult(taskResult);
 					vtrualMachineQuery.removeQueryTask(vp);
@@ -122,7 +122,7 @@ public class LaunchEvent {
 					//check time 
 					boolean b = vtrualMachineQuery.timeOutCheck(vp);
 					if(b){
-						TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Launch Case,Farm Id="+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId());
+						TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Launch Case,Farm Id="+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId(),vp.getEventType());
 						riskStackDao.deleteTask(vp.getTaskId());
 						taskResultDao.addResult(taskResult);
 						vtrualMachineQuery.removeQueryTask(vp);
@@ -131,7 +131,7 @@ public class LaunchEvent {
 			}else{// server number less than total
 				boolean b = vtrualMachineQuery.timeOutCheck(vp);
 				if(b){
-					TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Launch Case,Farm Id="+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId());
+					TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Launch Case,Farm Id="+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId(),vp.getEventType());
 					riskStackDao.deleteTask(vp.getTaskId());
 					taskResultDao.addResult(taskResult);
 					vtrualMachineQuery.removeQueryTask(vp);
@@ -142,7 +142,7 @@ public class LaunchEvent {
 			logger.error("launch case,get Server list error\n"+e.getLocalizedMessage());
 			boolean b = vtrualMachineQuery.timeOutCheck(vp);
 			if(b){
-				TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Launch Case,Farm Id"+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId());
+				TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Launch Case,Farm Id"+vp.getcFarmId()+" TIME OUT", vp.getcFarmId(), "", "",vp.getDestinationFarmId(),vp.getEventType());
 				riskStackDao.deleteTask(vp.getTaskId());
 				taskResultDao.addResult(taskResult);
 				vtrualMachineQuery.removeQueryTask(vp);
@@ -163,7 +163,7 @@ public class LaunchEvent {
 					callbackResponse = MSUtil.httpClientPostUrl(map,vp.getCallbackUrl(), newResult);
 				} catch (Exception e) {
 					logger.error("launch case,response order result failed");
-					TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, "", vp.getcFarmId(), vp.getCallbackUrl(), e.getLocalizedMessage(),vp.getDestinationFarmId());
+					TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, "", vp.getcFarmId(), vp.getCallbackUrl(), e.getLocalizedMessage(),vp.getDestinationFarmId(),vp.getEventType());
 					//delete the row record of task 
 					riskStackDao.deleteTask(vp.getTaskId());
 					taskResultDao.addResult(taskResult);
@@ -182,7 +182,7 @@ public class LaunchEvent {
 					logger.error("after call back return result,get resopnse error\n"+e.getLocalizedMessage());
 					e.printStackTrace();
 				}
-				TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, respCall, "0", vp.getCallbackUrl(), result,vp.getDestinationFarmId());
+				TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, respCall, "0", vp.getCallbackUrl(), result,vp.getDestinationFarmId(),vp.getEventType());
 				//delete the row record of task 
 				riskStackDao.deleteTask(vp.getTaskId());
 				taskResultDao.addResult(taskResult);

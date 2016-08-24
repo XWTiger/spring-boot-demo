@@ -60,7 +60,7 @@ public class TaskResultService {
 					logger.warn("garbage recover, the farm id is absent");
 				}
 				TaskResult taskResult = MSUtil.getResultInstance(taskStack.getId(), CaseProvider.STATUS_DEAD_LOCK, taskStack.getRequestMethod(),
-						"", farmId, taskStack.getCallBackUrl(), taskStack.getParams(), dFarmId);
+						"", farmId, taskStack.getCallBackUrl(), taskStack.getParams(), dFarmId,taskStack.getEventType());
 				taskStackDao.deleteTask(taskStack.getId());
 				taskResultDao.addResult(taskResult);
 			}

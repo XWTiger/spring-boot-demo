@@ -118,6 +118,7 @@ public class MirRequestService {
 				riskStack.setRequestMethod("post");
 				riskStack.setRequestUrl(url);
 				riskStack.setRepeatTimes(0);
+				riskStack.setEventType(MSUtil.getChineseName(params.getData().getType()));
 				//3. add risk entity to risk table 
 				riskStackDao.addTask(riskStack);
 				// return result json

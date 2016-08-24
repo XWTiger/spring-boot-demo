@@ -3,8 +3,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.chinacloud.isv.persistance.TaskResultDao">
     <insert id="addResult">
-    insert into TaskResult(id,cFarmId,requestMethod,params,resultStatus,info,addTime,requestUrl,destinationFarmId,envId)
-    values(#{id},#{cFarmId},#{requestMethod},#{params},#{resultStatus},#{info},now(),#{requestUrl},#{destinationFarmId},#{envId})
+    insert into TaskResult(id,cFarmId,requestMethod,params,resultStatus,info,addTime,requestUrl,destinationFarmId,envId,eventType)
+    values(#{id},#{cFarmId},#{requestMethod},#{params},#{resultStatus},#{info},now(),#{requestUrl},#{destinationFarmId},#{envId},#{eventType})
     </insert>
     
     <select id="getOrderTaskResultById" parameterType="String" resultType="com.chinacloud.isv.domain.TaskResult">

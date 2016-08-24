@@ -12,7 +12,7 @@ public class ServiceTemplateEntity {
     private String relevant_farm_name;
     private String creater_name;
     private String env_id;
-    private String service_template_schema_map;
+    private MirTemplate service_template_schema_map;
     
 	public String getName() {
 		return name;
@@ -74,10 +74,11 @@ public class ServiceTemplateEntity {
 	public void setEnv_id(String env_id) {
 		this.env_id = env_id;
 	}
-	public String getService_template_schema_map() {
+	public MirTemplate getService_template_schema_map() {
 		return service_template_schema_map;
 	}
-	public void setService_template_schema_map(String service_template_schema_map) {
+	public void setService_template_schema_map(MirTemplate service_template_schema_map) {
 		this.service_template_schema_map = service_template_schema_map;
 	}
+	
 }

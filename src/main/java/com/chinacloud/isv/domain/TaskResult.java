@@ -12,7 +12,7 @@ public class TaskResult {
 	private String requestUrl;
 	private String destinationFarmId;
 	private String envId;
-	
+	private String eventType;
 	public String getId() {
 		return id;
 	}
@@ -72,6 +72,12 @@ public class TaskResult {
 	}
 	public void setEnvId(String envId) {
 		this.envId = envId;
+	}
+	public String getEventType() {
+		return eventType;
+	}
+	public void setEventType(String eventType) {
+		this.eventType = eventType;
 	}
 	
 }

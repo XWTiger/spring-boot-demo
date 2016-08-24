@@ -6,8 +6,8 @@
         select * from TaskStack where lockTask = 0 limit 20 
     </select>
     <insert id="addTask" parameterType="com.chinacloud.isv.domain.TaskStack">
-        insert into TaskStack(id,requestUrl,requestMethod,params,callBackUrl,lockTask,farmId,addTime,repeatTimes,destinationFarmId) 
-        values(#{id},#{requestUrl},#{requestMethod},#{params},#{callBackUrl},#{lockTask},#{farmId},now(),#{repeatTimes},#{destinationFarmId})
+        insert into TaskStack(id,requestUrl,requestMethod,params,callBackUrl,lockTask,farmId,addTime,repeatTimes,destinationFarmId,eventType) 
+        values(#{id},#{requestUrl},#{requestMethod},#{params},#{callBackUrl},#{lockTask},#{farmId},now(),#{repeatTimes},#{destinationFarmId},#{eventType})
     </insert>
     <delete id="deleteTask" parameterType="String">
         delete from TaskStack where id=#{id} and lockTask = 1

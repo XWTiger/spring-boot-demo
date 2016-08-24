@@ -6,7 +6,7 @@ public class VMQeuryParam {
 	private String callbackUrl;
 	private int roles;
 	private String taskId;
-	private String cFarmId;
+	private String cFarmId = "0";
 	private String xSecurityKey;
 	private String specialToken;
 	private String enventId;
@@ -22,6 +22,7 @@ public class VMQeuryParam {
 	private String serviceTemplateName;
 	private String envId;//scalr environment id
 	private String tenantId;
+	private String eventType;
 	//the instance id is order case result id
 	
 	
@@ -155,6 +156,12 @@ public class VMQeuryParam {
 	}
 	public void setTenantId(String tenantId) {
 		this.tenantId = tenantId;
+	}
+	public String getEventType() {
+		return eventType;
+	}
+	public void setEventType(String eventType) {
+		this.eventType = eventType;
 	}
 	
 }

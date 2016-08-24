@@ -155,7 +155,7 @@ public class MSUtil {
 	 * @param task
 	 * @return
 	 */
-	public static TaskResult getTaskResult(int type, TaskStack task, String r, String comebackResult,String clonedFarmId,String caseType,String envId) {
+	public static TaskResult getTaskResult(int type, TaskStack task, String r, String comebackResult,String clonedFarmId,String caseType,String envId,String eventType) {
 		TaskResult result = new TaskResult();
 		if (1 == type) {
 			result.setResultStatus("SUCCESS");
@@ -165,6 +165,7 @@ public class MSUtil {
 			result.setInfo(comebackResult);
 			result.setRequestUrl(task.getCallBackUrl());
 			result.setEnvId(envId);
+			result.setEventType(eventType);
 			if(caseType.equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)){
 				result.setcFarmId(clonedFarmId);
 				result.setDestinationFarmId(task.getFarmId());
@@ -179,6 +180,7 @@ public class MSUtil {
 			result.setRequestUrl(task.getCallBackUrl());
 			result.setDestinationFarmId(clonedFarmId);
 			result.setEnvId(envId);
+			result.setEventType(eventType);
 			result.setInfo("call back return result failed,farm id:"+clonedFarmId +", errorMsg:"+ comebackResult);
 		}
 		return result;
@@ -445,7 +447,7 @@ public class MSUtil {
 	 * type not 0 success, 0 filed
 	 * @return
 	 */
-	public static TaskResult getResultInstance(String id,String status,String requestMthod,String requestResponse,String cFarmId,String callBackUrl,String parameters,String destinationFarmId){
+	public static TaskResult getResultInstance(String id,String status,String requestMthod,String requestResponse,String cFarmId,String callBackUrl,String parameters,String destinationFarmId,String eventType){
 		TaskResult tResult = new TaskResult();
 		tResult.setResultStatus(status);
 		tResult.setId(id);
@@ -453,6 +455,7 @@ public class MSUtil {
 		tResult.setParams(parameters);
 		tResult.setInfo(requestResponse);
 		tResult.setcFarmId(cFarmId);
+		tResult.setEventType(eventType);
 		logger.debug("===========cFarmId=======>"+cFarmId+"===destinationFarmId==>"+destinationFarmId);
 		tResult.setDestinationFarmId(destinationFarmId);
 		tResult.setRequestUrl(callBackUrl);

@@ -4,6 +4,7 @@ public class TaskStack {
 
 	private String id;
 	private String requestUrl;
+	private String eventType;
 	private String requestMethod;
 	private String params;
 	private String callBackUrl;
@@ -79,4 +80,11 @@ public class TaskStack {
 	public void setDestinationFarmId(String destinationFarmId) {
 		this.destinationFarmId = destinationFarmId;
 	}
+	public String getEventType() {
+		return eventType;
+	}
+	public void setEventType(String eventType) {
+		this.eventType = eventType;
+	}
+	
 }

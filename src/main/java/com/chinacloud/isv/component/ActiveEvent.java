@@ -87,7 +87,7 @@ public class ActiveEvent {
 				}else{
 					logger.warn("active case,running vitrual machine error,we need "+server.getTotal()+" machines,but it just have "+count);
 					if(vtrualMachineQuery.timeOutCheck(vp)){
-						TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Active Case,Farm Id"+vp.getcFarmId()+" TIME OUT","0", "", "",vp.getDestinationFarmId());
+						TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Active Case,Farm Id"+vp.getcFarmId()+" TIME OUT","0", "", "",vp.getDestinationFarmId(),vp.getEventType());
 						riskStackDao.deleteTask(vp.getTaskId());
 						taskResultDao.addResult(taskResult);
 						vtrualMachineQuery.removeQueryTask(vp);
@@ -116,12 +116,12 @@ public class ActiveEvent {
 				HttpEntity entity = response.getEntity();
 				String comebackResult = EntityUtils.toString(entity);
 				logger.info("response entity content--->"+comebackResult);
-				taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.SUCESS_STATUS, CaseProvider.HTTP_STATUS_POST, comebackResult, "0", vp.getCallbackUrl(), result,vp.getDestinationFarmId());
+				taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.SUCESS_STATUS, CaseProvider.HTTP_STATUS_POST, comebackResult, "0", vp.getCallbackUrl(), result,vp.getDestinationFarmId(),vp.getEventType());
 				//delete the row record of task and the order case result
 				riskStackDao.deleteTask(vp.getTaskId());
 				taskResultDao.addResult(taskResult);
 			} catch (Exception e) {
-				taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, "call back return result failed:"+e.getMessage(), "0", vp.getCallbackUrl(), result,vp.getDestinationFarmId());
+				taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, "call back return result failed:"+e.getMessage(), "0", vp.getCallbackUrl(), result,vp.getDestinationFarmId(),vp.getEventType());
 				//delete the row record of task 
 				riskStackDao.deleteTask(vp.getTaskId());
 				taskResultDao.addResult(taskResult);

@@ -1,6 +1,5 @@
 package com.chinacloud.isv.service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,8 +27,6 @@ import com.chinacloud.isv.persistance.TaskResultDao;
 import com.chinacloud.isv.persistance.TaskStackDao;
 import com.chinacloud.isv.util.CaseProvider;
 import com.chinacloud.isv.util.MSUtil;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 @Service
 @Transactional
@@ -52,7 +49,7 @@ public class TaskConsumeService {
 	@Scheduled(fixedRate = 1000)
 	public void riskRunning(){
 		
-		
+		WhiteholeFactory whiteholeFactory = new WhiteholeFactory();
 		ArrayList<TaskStack> RiskList = riskStackDao.getTasks();
 		// lock task item
 		//logger.debug("-------the tast size:"+RiskList.size()+"----------");
@@ -63,11 +60,9 @@ public class TaskConsumeService {
 			Integer status = riskStackDao.lockTask(taskStack.getId());
 			if(null != status && 1 == status ){
 				//consume
-				WhiteholeFactory whiteholeFactory = new WhiteholeFactory();
 				try {
 					Params params = whiteholeFactory.getEntity(Params.class, taskStack.getParams());
 					TaskResult taskResult = new TaskResult();
-					
 					String result = null;
 					switch (params.getData().getType()) {
 						case CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER:{
@@ -91,7 +86,7 @@ public class TaskConsumeService {
 									String callBackResponse = EntityUtils.toString(entity);
 									logger.info("response entity content--->"+callBackResponse);
 									response.close();
-									taskResult = MSUtil.getTaskResult(1, taskStack,vParam.getParams(),callBackResponse,vParam.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER,vParam.getEnvId());
+									taskResult = MSUtil.getTaskResult(1, taskStack,taskStack.getParams(),callBackResponse,vParam.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER,vParam.getEnvId(),taskStack.getEventType());
 									//add order service instance row
 									if(!result.contains("\"success\":false")){
 										orderRecordDao.addRecord(MSUtil.getOrderRecordInstance(vParam));
@@ -127,7 +122,7 @@ public class TaskConsumeService {
 								HttpEntity entity = cancelResponse.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL,null);
+								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL,null,taskStack.getEventType());
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 							}
@@ -141,8 +136,10 @@ public class TaskConsumeService {
 								vmQeuryParam.setTaskId(taskStack.getId());
 								vmQeuryParam.setBeginTime(new Date().getTime());
 								vmQeuryParam.setInstanceId(instanceId);
+								vmQeuryParam.setEventType(taskStack.getEventType());
 								vtrualMachineQuery.addQueryTask(vmQeuryParam);
 								vtrualMachineQuery.start();
+								vmQeuryParam = null;
 							}else{
 								Map<String,String> map = new HashMap<String,String >();
 								map.put("Content-Type", "application/json");
@@ -154,7 +151,7 @@ public class TaskConsumeService {
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
 								//add result
-								taskResult = MSUtil.getTaskResult(0, taskStack, result,comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL,tr.getEnvId());
+								taskResult = MSUtil.getTaskResult(0, taskStack, result,comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL,tr.getEnvId(),taskStack.getEventType());
 								//delete the row record of task and the order case result
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.deleteResultById(instanceId);
@@ -162,7 +159,7 @@ public class TaskConsumeService {
 								} catch (Exception e) {
 									logger.error("Consume task error\n"+e.getMessage());
 									//add result
-									taskResult = MSUtil.getTaskResult(0, taskStack, result,e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL,tr.getEnvId());
+									taskResult = MSUtil.getTaskResult(0, taskStack, result,e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL,tr.getEnvId(),taskStack.getEventType());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult);
@@ -183,7 +180,7 @@ public class TaskConsumeService {
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("suspend case,response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND,null);
+								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND,null,taskStack.getEventType());
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 								break;
@@ -197,13 +194,13 @@ public class TaskConsumeService {
 							CloseableHttpResponse response = WhiteholeFactory.callBackReturnResult(suspendResult, params);
 							if(null == response){
 								logger.error("suspend case, call back return result failed");
-								taskResult = MSUtil.getTaskResult(0, taskStack, result, "call back return result is null",tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND,tr.getEnvId());
+								taskResult = MSUtil.getTaskResult(0, taskStack, result, "call back return result is null",tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND,tr.getEnvId(),taskStack.getEventType());
 							}else{
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
 								//add result
-								taskResult = MSUtil.getTaskResult(1, taskStack, suspendResult, comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND,tr.getEnvId());
+								taskResult = MSUtil.getTaskResult(1, taskStack, suspendResult, comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_SUSPEND,tr.getEnvId(),taskStack.getEventType());
 							}
 							riskStackDao.deleteTask(taskStack.getId());
 							taskResultDao.addResult(taskResult);
@@ -225,7 +222,7 @@ public class TaskConsumeService {
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, activeResponse, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE,null);
+								taskResult = MSUtil.getTaskResult(0, taskStack, activeResponse, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE,null,taskStack.getEventType());
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 							}
@@ -239,22 +236,24 @@ public class TaskConsumeService {
 								vmQeuryParam.setcFarmId(tr.getcFarmId());
 								vmQeuryParam.setEnventId(params.getData().getEventId());
 								vmQeuryParam.setTaskId(taskStack.getId());
-								vmQeuryParam.setType(2);
+								vmQeuryParam.setEventType(taskStack.getEventType());
+								vmQeuryParam.setType(CaseProvider.EVENT_NUMBER_TYPE_ACTIVE);
 								vmQeuryParam.setInstanceId(instanceId);
 								vmQeuryParam.setBeginTime(new Date().getTime());
 								vtrualMachineQuery.addQueryTask(vmQeuryParam);
 								vtrualMachineQuery.start();
+								vmQeuryParam = null;
 							}else{
 								CloseableHttpResponse response = WhiteholeFactory.callBackReturnResult(result, params);
 								if(null == response){
 									logger.error("suspend case, call back return result failed");
-									taskResult = MSUtil.getTaskResult(0, taskStack, result, "call back return result is null",tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE,tr.getEnvId());
+									taskResult = MSUtil.getTaskResult(0, taskStack, result, "call back return result is null",tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE,tr.getEnvId(),taskStack.getEventType());
 								}else{
 									HttpEntity entity = response.getEntity();
 									String comebackResult = EntityUtils.toString(entity);
 									logger.info("response entity content--->"+comebackResult);
 									//add result
-									taskResult = MSUtil.getTaskResult(1, taskStack, result, comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE,tr.getEnvId());
+									taskResult = MSUtil.getTaskResult(1, taskStack, result, comebackResult,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_ACTIVE,tr.getEnvId(),taskStack.getEventType());
 								}
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
@@ -274,7 +273,7 @@ public class TaskConsumeService {
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT,null);
+								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT,null,taskStack.getEventType());
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 							}
@@ -290,7 +289,7 @@ public class TaskConsumeService {
 									//remove the task
 								} catch (Exception e) {
 									logger.error("reboot case,response order result failed");
-									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT,tr.getEnvId());
+									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, result, e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT,tr.getEnvId(),taskStack.getEventType());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult2);
@@ -304,9 +303,11 @@ public class TaskConsumeService {
 								vmQeuryParam.setTaskId(taskStack.getId());
 								vmQeuryParam.setType(CaseProvider.EVENT_NUMBER_TYPE_REBOOT);
 								vmQeuryParam.setInstanceId(instanceId);
+								vmQeuryParam.setEventType(taskStack.getEventType());
 								vmQeuryParam.setBeginTime(new Date().getTime());
 								vtrualMachineQuery.addQueryTask(vmQeuryParam);
 								vtrualMachineQuery.start();
+								vmQeuryParam = null;
 							}
 							
 							break;
@@ -323,7 +324,7 @@ public class TaskConsumeService {
 								HttpEntity entity = response.getEntity();
 								String comebackResult = EntityUtils.toString(entity);
 								logger.info("suspend case,response entity content--->"+comebackResult);
-								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH,null);
+								taskResult = MSUtil.getTaskResult(0, taskStack, suspendResult, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH,null,taskStack.getEventType());
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
 								break;
@@ -332,8 +333,10 @@ public class TaskConsumeService {
 							String launchResult = mirFactory.launchService(params, tr.getcFarmId(), taskStack, vp,orderParams);
 							if(launchResult.contains("Farm successfully launched")){//TODO maybe update.
 								vp.setCallbackUrl(params.getData().getCallBackUrl());
+								vp.setEventType(taskStack.getEventType());
 								vtrualMachineQuery.addQueryTask(vp);
 								vtrualMachineQuery.start();
+								vp = null;
 							}else{// call back return result
 								logger.info("launch case, call back params---->"+launchResult);
 								Map<String,String> map = new HashMap<String,String >();
@@ -345,7 +348,7 @@ public class TaskConsumeService {
 									response = MSUtil.httpClientPostUrl(map, params.getData().getCallBackUrl(), newResult);
 								} catch (Exception e) {
 									logger.error("lauch case,response order result failed");
-									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, launchResult, e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH,tr.getEnvId());
+									TaskResult taskResult2 = MSUtil.getTaskResult(0, taskStack, launchResult, e.getLocalizedMessage(),tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH,tr.getEnvId(),taskStack.getEventType());
 									//delete the row record of task 
 									riskStackDao.deleteTask(taskStack.getId());
 									taskResultDao.addResult(taskResult2);
@@ -355,7 +358,7 @@ public class TaskConsumeService {
 								String callBackResponse = EntityUtils.toString(entity);
 								logger.info("response entity content--->"+callBackResponse);
 								response.close();
-								taskResult = MSUtil.getTaskResult(1, taskStack,launchResult,callBackResponse,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH,tr.getEnvId());
+								taskResult = MSUtil.getTaskResult(1, taskStack,launchResult,callBackResponse,tr.getcFarmId(),CaseProvider.EVENT_TYPE_SUBSCRIPTION_LAUNCH,tr.getEnvId(),taskStack.getEventType());
 								//delete the row record of task 
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
@@ -364,20 +367,15 @@ public class TaskConsumeService {
 						}
 						default:{
 							logger.warn("case type don't exist");
+							riskStackDao.deleteTask(taskStack.getId());
 							throw new IllegalArgumentException("case type don't exist");
+							
 						}
 					}
-				} catch (JsonParseException e) {
-					logger.error("when consume task ,json JsonParseException\n"+e.getMessage());
+				} catch (Exception e) {
+					logger.error("when consume task ,have a exception, errorMsg:"+e.getLocalizedMessage());
 					e.printStackTrace();
-				} catch (JsonMappingException e) {
-					logger.error("when consume task ,json JsonMappingException\n"+e.getMessage());
-					e.printStackTrace();
-				} catch (IOException e) {
-					logger.error("when consume task ,json IOException\n"+e.getMessage());
-					e.printStackTrace();
-				}
-				
+				} 
 			}
 		}
 	}

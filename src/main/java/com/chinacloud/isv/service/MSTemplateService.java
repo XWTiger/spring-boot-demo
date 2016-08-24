@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.entity.ResultObject;
-import com.chinacloud.isv.entity.mirtemplate.ServiceTemplateEntity;
+import com.chinacloud.isv.entity.mirtemplate.ServiceTemplate;
 import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.util.MSUtil;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -72,15 +72,24 @@ public class MSTemplateService {
 		return b;
 	}
 
-	public ServiceTemplateEntity getServiceTempalteEntity(String serviceTemplateId){
+	public ServiceTemplate getServiceTempalteEntity(String serviceTemplateId){
 		String url = configuration.getMirBaseUrl()+"/mir/extend/service/getServiceTemplateInfo/"+serviceTemplateId;
 		CloseableHttpResponse response = null;
+		ResultObject robj= loginService.login(null, null);
+		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
+			logger.error("login mir plateform failed");
+			return null; 
+		}
+		Map<String,String> map = new HashMap<String,String >();
+		map.put("Content-Type", "application/json");
+		map.put("X-Secure-Key", robj.getSecureKey());
+		map.put("X-Requested-Token", robj.getSpecialToken());
 		try {
-			response = MSUtil.httpClientGetUrl(null, url);
+			response = MSUtil.httpClientGetUrl(map, url);
 			String reponseStr =EntityUtils.toString(response.getEntity());
 			logger.info("service template info: "+reponseStr);
 			WhiteholeFactory wFactory =new WhiteholeFactory();
-			ServiceTemplateEntity sTemplateEntity = wFactory.getEntity(ServiceTemplateEntity.class, reponseStr);
+			ServiceTemplate sTemplateEntity = wFactory.getEntity(ServiceTemplate.class, reponseStr);
 			return sTemplateEntity;
 		} catch (Exception e) {
 			logger.error("order case, get service template entity failed,errorMsg: "+e.getLocalizedMessage());

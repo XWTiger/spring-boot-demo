@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.chinacloud.isv.component.VtrualMachineQuery;
-import com.chinacloud.isv.entity.ResultObject;
 import com.chinacloud.isv.entity.VMQeuryParam;
+import com.chinacloud.isv.entity.mirtemplate.ServiceTemplate;
 import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.service.ConfigurateFarmService;
 import com.chinacloud.isv.service.LoginService;
@@ -78,11 +78,11 @@ public class TestController {
 	
 	@RequestMapping("/test_exception")
 	public void exceptionTest(){
-		String teString="{\"success\":true,\"successMessage\":\"Farm successfully saved\",\"farmId\":\"13\",\"isNewFarm\":false}";
+		String teString="{\"serviceTemplate\": {\"name\": \"2333\",\"description\": \"\",\"type\": \"scalr\",\"id\": \"131\",\"service_template_id\": \"8a7b6634-d2af-4864-a4ec-f5edad45df4c\",\"template_status\": 1,\"create_time\": \"2016-08-18 01:45:50.0\",\"relevant_farm_name\": \"2333\",\"creater_name\": \"mirowner@chinacloud.com.cn\",\"env_id\": \"1\",\"service_template_schema_map\": {\"serviceTemplateName\": \"2333\",\"componentInfo\": [{\"componentName\": \"redhat67-kvm-mysql51-15disk-noauto\",\"componentNet\": [\"1b6cd9ef-9753-4453-b7b1-399e6632c636\"],\"unitFlavorId\": \"vcpus_1-ram_1-disk_15\",\"componentIpPool\": \"\",\"unitInstanceNumber\": \"1\"}],\"farmId\": \"131\",\"serviceTemplateId\": \"8a7b6634-d2af-4864-a4ec-f5edad45df4c\"}}}";
 		WhiteholeFactory wFactory = new WhiteholeFactory();
 		try {
-			ResultObject mirTemplate = wFactory.getEntity(ResultObject.class, teString);
-			logger.debug("content:"+mirTemplate.isNewFarm());
+			ServiceTemplate mirTemplate = wFactory.getEntity(ServiceTemplate.class, teString);
+			logger.debug("===================content:============================="+mirTemplate.getServiceTemplate().getCreate_time());
 		} catch (JsonParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

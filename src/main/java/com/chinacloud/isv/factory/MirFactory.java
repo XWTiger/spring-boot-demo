@@ -34,7 +34,7 @@ import com.chinacloud.isv.entity.mir.ServerInfo;
 import com.chinacloud.isv.entity.mir.Servers;
 import com.chinacloud.isv.entity.mirtemplate.ComponentInfo;
 import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
-import com.chinacloud.isv.entity.mirtemplate.ServiceTemplateEntity;
+import com.chinacloud.isv.entity.mirtemplate.ServiceTemplate;
 import com.chinacloud.isv.persistance.TaskResultDao;
 import com.chinacloud.isv.persistance.TaskStackDao;
 import com.chinacloud.isv.service.ConfigurateFarmService;
@@ -94,14 +94,18 @@ public class MirFactory {
 			logger.error("order case,convert mir template string to object failed. task id: "+taskStack.getId());
 			e3.printStackTrace();
 		} 
-		ServiceTemplateEntity sTemplateEntity = msTemplateService.getServiceTempalteEntity(mTemplate.getServiceTemplateId());
-		if(1 == sTemplateEntity.getTemplate_status()){
+		ServiceTemplate sTemplateEntity = msTemplateService.getServiceTempalteEntity(mTemplate.getServiceTemplateId());
+		if(null == sTemplateEntity){
+			String result = WhiteholeFactory.getFailedMsg(params, "处理失败,服务模板信息获取失败,请稍后再试。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
+			return result;
+		}
+		if(0 == sTemplateEntity.getServiceTemplate().getTemplate_status()){
 			String result = WhiteholeFactory.getFailedMsg(params, "处理失败,服务模板已被禁用或者无法获取其状态,请稍后再试。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			return result;
 		}
 		//vp add service instance id
 		int totalInstance = 0;
-		vp.setEnvId(sTemplateEntity.getEnv_id());
+		vp.setEnvId(sTemplateEntity.getServiceTemplate().getEnv_id());
 		vp.setServiceTemplateId(mTemplate.getServiceTemplateId());
 		vp.setServiceTemplateName(mTemplate.getServiceTemplateName());
 		for (ComponentInfo ci : mTemplate.getComponentInfo()) {

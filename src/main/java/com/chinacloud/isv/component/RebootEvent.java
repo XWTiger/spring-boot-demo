@@ -82,7 +82,7 @@ public class RebootEvent {
 			try {
 				response = MSUtil.httpClientPostUrl(map, vp.getCallbackUrl(), newResult);
 			} catch (Exception e) {
-				taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, "call back return result failed,errorMsg:"+e.getLocalizedMessage(), vp.getcFarmId(), vp.getCallbackUrl(), result,vp.getDestinationFarmId());
+				taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, "call back return result failed,errorMsg:"+e.getLocalizedMessage(), vp.getcFarmId(), vp.getCallbackUrl(), result,vp.getDestinationFarmId(),vp.getEventType());
 				//delete the row record of task 
 				riskStackDao.deleteTask(vp.getTaskId());
 				taskResultDao.addResult(taskResult);
@@ -96,13 +96,13 @@ public class RebootEvent {
 				logger.error("reboot case,convert result entity to string failed");
 				e.printStackTrace();
 			} 
-			taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.SUCESS_STATUS,CaseProvider.HTTP_STATUS_POST, requestResponse,"0", vp.getCallbackUrl(), result,vp.getDestinationFarmId());
+			taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.SUCESS_STATUS,CaseProvider.HTTP_STATUS_POST, requestResponse,"0", vp.getCallbackUrl(), result,vp.getDestinationFarmId(),vp.getEventType());
 			riskStackDao.deleteTask(vp.getTaskId());
 			taskResultDao.addResult(taskResult);
 			vtrualMachineQuery.removeQueryTask(vp);
 		}else{
 			if(vtrualMachineQuery.timeOutCheck(vp)){
-				TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Reboot Case,Farm Id="+vp.getcFarmId()+" TIME OUT,", vp.getcFarmId(), "", "",vp.getDestinationFarmId());
+				TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, "", "Reboot Case,Farm Id="+vp.getcFarmId()+" TIME OUT,", vp.getcFarmId(), "", "",vp.getDestinationFarmId(),vp.getEventType());
 				riskStackDao.deleteTask(vp.getTaskId());
 				taskResultDao.addResult(taskResult);
 				vtrualMachineQuery.removeQueryTask(vp);

@@ -10,21 +10,23 @@ create table if not exists TaskStack
 (
    id                       varchar(36) not null,
    requestUrl               text not null,
+   eventType                varchar(255),
    requestMethod            varchar(255) not null,
    params                   text not null,
    callBackUrl              varchar(255) not null,
    lockTask                     tinyint,
-   farmId                   varchar(255),
+   farmId                   varchar(255) COMMENT '环境模板id',
    addTime                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    repeatTimes int(10) unsigned zerofill NOT NULL DEFAULT '0000000000',
-   destinationFarmId text,
+   destinationFarmId text COMMENT '目标应用堆栈id (用于非申请事件)',
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 create table if not exists TaskResult
 (
    id                       varchar(36) not null,
-   cFarmId                  varchar(255),
+   cFarmId                  varchar(255) COMMENT '克隆出来的应用堆栈id',
+   eventType                varchar(255),
    requestMethod            varchar(255) not null,
    requestUrl               text not null,
    params                   text not null,
@@ -32,7 +34,7 @@ create table if not exists TaskResult
    info                     text,
    addTime                  timestamp  NOT NULL DEFAULT CURRENT_TIMESTAMP,
    envId                    varchar(255),
-   destinationFarmId text,
+   destinationFarmId text COMMENT '目标应用堆栈id (用于非申请事件)',
    primary key (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 create table if not exists OrderRecord
