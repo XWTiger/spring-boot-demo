@@ -114,7 +114,7 @@ public class MirFactory {
 		vp.setTotalInstance(totalInstance);
 		ResultObject robj= loginService.login(null, null);
 		//do mir request
-		logger.info("=====================申请事件,事件ID: "+params.getData().getEventId()+" =========totalInstance:"+totalInstance+"===========");
+		logger.info("=====================申请事件,实例ID: "+taskStack.getId()+" =========totalInstance:"+totalInstance+"===========");
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
 			logger.error("login mir plateform failed");
 			String result = WhiteholeFactory.getFailedMsg(params, "处理失败,原因是登录mir系统失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);

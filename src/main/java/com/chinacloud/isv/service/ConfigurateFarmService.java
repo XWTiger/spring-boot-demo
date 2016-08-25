@@ -53,7 +53,6 @@ public class ConfigurateFarmService {
 		try {
 			infoResponse = MSUtil.httpClientGetUrl(headers, infoUrl);
 			String conf = EntityUtils.toString(infoResponse.getEntity());
-			logger.info("cloned configuration: "+conf);
 			confList = MSUtil.getConfiguratedString(mirTemplate, conf);
 			if(null == confList){
 				logger.error("get configuration failed,please get connection with manager");
