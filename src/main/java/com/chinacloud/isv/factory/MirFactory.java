@@ -70,10 +70,14 @@ public class MirFactory {
 	//every request Exception should be catch and return the result
 	public String orderService(String farmId,TaskStack taskStack,VMQeuryParam vp){
 	
+		Data data = new Data();
+		Process process = new Process();
+		ArrayList<Attribute> att_list = new ArrayList<Attribute>();
 		Params params = null;
 		String cloneFarmId = null;
 		MirTemplate mTemplate = null;
 		Farms farms = null;
+		
 		vp.setDestinationFarmId(String.valueOf(farmId));
 		vp.setParams(taskStack.getParams());
 		WhiteholeFactory wFactory = new WhiteholeFactory();
@@ -225,29 +229,27 @@ public class MirFactory {
 		/*-------------------*/
 		//TODO add farm config operations
 		/*-------------------*/
-		if(!configurateFarmService.configClonedFarm(mTemplate, cloneFarmId, robj)){
+		if(!configurateFarmService.configClonedFarm(mTemplate, cloneFarmId, robj,att_list)){
 			removeCloneFarm(cloneFarmId, robj.getSecureKey(), robj.getSpecialToken());
 			String result = WhiteholeFactory.getFailedMsg(params,"处理失败,原因是配置克隆应用堆栈失败。",CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 			return result;
 		}
 		}
-		Data data = new Data();
-		Process process = new Process();
 		String result = null;
 		data.setSuccess(true);
 		data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)+"处理成功");
 		process.setEventId(params.getData().getEventId());
 		process.setInstanceId(taskStack.getId());
 		process.setStatus("SUCCESS");
-		ArrayList<Attribute> att_list = new ArrayList<Attribute>();
+		
 		Attribute att = new Attribute();
-		att.setKey("name");
+		att.setKey("a_farm_name");
 		att.setValue(farms.getData().get(0).getName());
 		Attribute att2 = new Attribute();
-		att2.setKey("farmId");
+		att2.setKey("a_farm_id");
 		att2.setValue(cloneFarmId);
 		Attribute att3 = new Attribute();
-		att3.setKey("status");
+		att3.setKey("a_farm_status");
 		att3.setValue(farms.getData().get(0).getStatus_txt());
 		att_list.add(att);
 		att_list.add(att2);

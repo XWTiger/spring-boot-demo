@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.entity.ResultObject;
+import com.chinacloud.isv.entity.callbackparams.Attribute;
 import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
 import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.util.MSUtil;
@@ -36,7 +37,7 @@ public class ConfigurateFarmService {
 	 * @param robj
 	 * @return
 	 */
-	public boolean configClonedFarm(MirTemplate mirTemplate,String cloneFarmId,ResultObject robj){
+	public boolean configClonedFarm(MirTemplate mirTemplate,String cloneFarmId,ResultObject robj,ArrayList<Attribute> att_list){
 		boolean b = true;
 		String [] confList = null;
 		if(null == mirTemplate){
@@ -60,6 +61,11 @@ public class ConfigurateFarmService {
 				return b;
 			}
 			logger.debug("new configuration :");
+			if(null != att_list){
+				MSUtil.getComponentsList(confList[1], att_list);
+			}else{
+				logger.warn("the attribute list is null");
+			}
 			for (String string : confList) {
 				logger.debug(string);
 			}

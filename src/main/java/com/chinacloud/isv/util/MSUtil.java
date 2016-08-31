@@ -2,6 +2,7 @@ package com.chinacloud.isv.util;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,6 +25,7 @@ import com.chinacloud.isv.domain.OrderRecord;
 import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.domain.TaskStack;
 import com.chinacloud.isv.entity.VMQeuryParam;
+import com.chinacloud.isv.entity.callbackparams.Attribute;
 import com.chinacloud.isv.entity.mirtemplate.ComponentInfo;
 import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -288,7 +290,6 @@ public class MSUtil {
 			String farmName = farmChild.get("name").toString();
 			String farmDescription = farmChild.get("description").toString();
 			String newFarmInfo = null;
-			
 			logger.info("farm description------>"+farmDescription);
 			if(!farmDescription.equals("\"\"")){
 				String unicode = string2Unicode(farmDescription.substring(1, farmName.length()-1));
@@ -460,5 +461,39 @@ public class MSUtil {
 		tResult.setDestinationFarmId(destinationFarmId);
 		tResult.setRequestUrl(callBackUrl);
 		return tResult;
+	}
+	
+	public static void getComponentsList(String roleString,ArrayList<Attribute> aList){
+		logger.debug("roles---------->"+roleString);
+		ObjectMapper oMapper = new ObjectMapper();
+		try {
+			JsonNode node = oMapper.readTree(roleString);
+			if(node.isArray()){
+				int count = 1;
+				for (JsonNode jsonNode : node) {
+					Attribute attribute =new Attribute();
+					attribute.setKey("component_name_1"+count);
+					attribute.setValue(jsonNode.get("name").toString());
+					Attribute attribute_2 =new Attribute();
+					attribute_2.setKey("component_type_"+count);
+					attribute_2.setValue(jsonNode.get("behaviors").toString());
+					Attribute attribute_3 =new Attribute();
+					attribute_3.setKey("component_instance_number_"+count);
+					attribute_3.setValue(jsonNode.get("settings").get("scaling.min_instances").toString());
+					Attribute attribute_4 =new Attribute();
+					attribute_4.setKey("component_farm_role_id_"+count);
+					attribute_4.setValue(jsonNode.get("farm_role_id").toString());
+					aList.add(attribute);
+					aList.add(attribute_2);
+					aList.add(attribute_3);
+					aList.add(attribute_4);
+					count++;
+				}
+			}else{
+				logger.warn("roles is not array,take a look at that please. node info :"+node.toString());
+			}
+		} catch (Exception e) {
+			logger.error(e.getLocalizedMessage());
+		} 
 	}
 }
