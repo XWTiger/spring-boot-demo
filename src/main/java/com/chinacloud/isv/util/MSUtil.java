@@ -472,7 +472,7 @@ public class MSUtil {
 				int count = 1;
 				for (JsonNode jsonNode : node) {
 					Attribute attribute =new Attribute();
-					attribute.setKey("component_name_1"+count);
+					attribute.setKey("component_name_"+count);
 					attribute.setValue(jsonNode.get("name").toString());
 					Attribute attribute_2 =new Attribute();
 					attribute_2.setKey("component_type_"+count);
