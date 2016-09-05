@@ -3,6 +3,7 @@ package com.chinacloud.isv.util;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,10 +25,15 @@ import org.apache.logging.log4j.Logger;
 import com.chinacloud.isv.domain.OrderRecord;
 import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.domain.TaskStack;
+import com.chinacloud.isv.entity.Params;
 import com.chinacloud.isv.entity.VMQeuryParam;
-import com.chinacloud.isv.entity.callbackparams.Attribute;
+import com.chinacloud.isv.entity.callbackparams.DataExtend;
+import com.chinacloud.isv.entity.callbackparams.Instance;
+import com.chinacloud.isv.entity.callbackparams.ProcessExtend;
+import com.chinacloud.isv.entity.mir.Farms;
 import com.chinacloud.isv.entity.mirtemplate.ComponentInfo;
 import com.chinacloud.isv.entity.mirtemplate.MirTemplate;
+import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -418,7 +424,7 @@ public class MSUtil {
 	 * get directed value by key. not support array  
 	 * @param keys
 	 * @param json
-	 * @return
+	 * @return JsonNode
 	 */
 	public static JsonNode getDirectedValueFromJson(String [] keys,String json){
 		if(keys.length <= 0){
@@ -463,31 +469,19 @@ public class MSUtil {
 		return tResult;
 	}
 	
-	public static void getComponentsList(String roleString,ArrayList<Attribute> aList){
+	public static void getComponentsList(String roleString,ArrayList<com.chinacloud.isv.entity.callbackparams.Component> aList){
 		logger.debug("roles---------->"+roleString);
 		ObjectMapper oMapper = new ObjectMapper();
 		try {
 			JsonNode node = oMapper.readTree(roleString);
 			if(node.isArray()){
-				int count = 1;
 				for (JsonNode jsonNode : node) {
-					Attribute attribute =new Attribute();
-					attribute.setKey("component_name_"+count);
-					attribute.setValue(jsonNode.get("name").toString());
-					Attribute attribute_2 =new Attribute();
-					attribute_2.setKey("component_type_"+count);
-					attribute_2.setValue(jsonNode.get("behaviors").toString());
-					Attribute attribute_3 =new Attribute();
-					attribute_3.setKey("component_instance_number_"+count);
-					attribute_3.setValue(jsonNode.get("settings").get("scaling.min_instances").toString());
-					Attribute attribute_4 =new Attribute();
-					attribute_4.setKey("component_farm_role_id_"+count);
-					attribute_4.setValue(jsonNode.get("farm_role_id").toString());
+					com.chinacloud.isv.entity.callbackparams.Component attribute =new com.chinacloud.isv.entity.callbackparams.Component();
+					attribute.setComponentName(jsonNode.get("name").toString());
+					attribute.setComponentType(jsonNode.get("behaviors").toString());
+					attribute.setComponentInstanceNumber(jsonNode.get("settings").get("scaling.min_instances").toString());
+					attribute.setComponentFarmRoleId(jsonNode.get("farm_role_id").toString());
 					aList.add(attribute);
-					aList.add(attribute_2);
-					aList.add(attribute_3);
-					aList.add(attribute_4);
-					count++;
 				}
 			}else{
 				logger.warn("roles is not array,take a look at that please. node info :"+node.toString());
@@ -495,5 +489,39 @@ public class MSUtil {
 		} catch (Exception e) {
 			logger.error(e.getLocalizedMessage());
 		} 
+	}
+	
+	public static String getResponseDataForWihtehole(boolean status,Params params,Farms farms,String farmId,String extendUrl,String message,TaskStack taskStack,ArrayList<com.chinacloud.isv.entity.callbackparams.Component> att_list){
+		DataExtend data = new DataExtend();
+		ProcessExtend process = new ProcessExtend();
+		data.setSuccess(status);
+		data.setMessage(message);
+		process.setEventId(params.getData().getEventId());
+		process.setInstanceId(taskStack.getId());
+		process.setStatus(CaseProvider.SUCESS_STATUS);
+		process.setExtensionUrl(extendUrl);
+		HashMap<String, Object> metadata = new HashMap<>();
+		metadata.put("system", "Mir");
+		process.setMetadata(metadata);
+		data.setProcess(process);
+		if(null != att_list){
+			HashMap<String, Object> map = new HashMap<>();
+			map.put("farmName", farms.getData().get(0).getName());
+			map.put("farmId", farmId);
+			map.put("componentInfo", att_list);
+			Instance instance = new Instance();
+			instance.setMetadata(map);
+			process.setInstance(instance);
+		}else{
+			logger.debug("att_list is null");
+		}
+		String result = null;
+		try {
+			result = WhiteholeFactory.getJsonString(data);
+		} catch (JsonProcessingException e) {
+			logger.error("convert failed info to json failed \n"+e.getLocalizedMessage());
+			return WhiteholeFactory.getFailedMsg(params, "处理失败,原因是转换成功信息为json失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
+		}
+		return result;
 	}
 }

@@ -25,9 +25,9 @@ import com.chinacloud.isv.domain.TaskStack;
 import com.chinacloud.isv.entity.Params;
 import com.chinacloud.isv.entity.ResultObject;
 import com.chinacloud.isv.entity.VMQeuryParam;
-import com.chinacloud.isv.entity.callbackparams.Attribute;
-import com.chinacloud.isv.entity.callbackparams.Data;
-import com.chinacloud.isv.entity.callbackparams.Process;
+import com.chinacloud.isv.entity.callbackparams.DataExtend;
+import com.chinacloud.isv.entity.callbackparams.Instance;
+import com.chinacloud.isv.entity.callbackparams.ProcessExtend;
 import com.chinacloud.isv.entity.mir.FarmInfo;
 import com.chinacloud.isv.entity.mir.Farms;
 import com.chinacloud.isv.entity.mir.ServerInfo;
@@ -40,6 +40,7 @@ import com.chinacloud.isv.persistance.TaskStackDao;
 import com.chinacloud.isv.service.ConfigurateFarmService;
 import com.chinacloud.isv.service.LoginService;
 import com.chinacloud.isv.service.MSTemplateService;
+import com.chinacloud.isv.service.MirEditService;
 import com.chinacloud.isv.service.UnlockService;
 import com.chinacloud.isv.util.CaseProvider;
 import com.chinacloud.isv.util.MSUtil;
@@ -65,14 +66,15 @@ public class MirFactory {
 	ConfigurateFarmService configurateFarmService;
 	@Autowired
 	VirtualMachineStatusCheck virtualMachineStatusCheck;
+	@Autowired
+	MirEditService mirEditService;
 	
 	private static final Logger logger = LogManager.getLogger(MirFactory.class);
 	//every request Exception should be catch and return the result
 	public String orderService(String farmId,TaskStack taskStack,VMQeuryParam vp){
 	
-		Data data = new Data();
-		Process process = new Process();
-		ArrayList<Attribute> att_list = new ArrayList<Attribute>();
+		
+		ArrayList<com.chinacloud.isv.entity.callbackparams.Component> att_list = new ArrayList<com.chinacloud.isv.entity.callbackparams.Component>();
 		Params params = null;
 		String cloneFarmId = null;
 		MirTemplate mTemplate = null;
@@ -236,34 +238,10 @@ public class MirFactory {
 		}
 		}
 		String result = null;
-		data.setSuccess(true);
-		data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)+"处理成功");
-		process.setEventId(params.getData().getEventId());
-		process.setInstanceId(taskStack.getId());
-		process.setStatus("SUCCESS");
-		
-		Attribute att = new Attribute();
-		att.setKey("a_farm_name");
-		att.setValue(farms.getData().get(0).getName());
-		Attribute att2 = new Attribute();
-		att2.setKey("a_farm_id");
-		att2.setValue(cloneFarmId);
-		Attribute att3 = new Attribute();
-		att3.setKey("a_farm_status");
-		att3.setValue(farms.getData().get(0).getStatus_txt());
-		att_list.add(att);
-		att_list.add(att2);
-		att_list.add(att3);
-		process.setAttribute(att_list);
-		process.setExtensionUrl(configuration.getMirMoreOperateUrl()+"/"+cloneFarmId);
-		data.setProcess(process);
-		try {
-			result = WhiteholeFactory.getJsonString(data);
-		} catch (JsonProcessingException e) {
-			logger.error("convert failed info to json failed \n"+e.getLocalizedMessage());
-			removeCloneFarm(cloneFarmId, robj.getSecureKey(), robj.getSpecialToken());
-			return WhiteholeFactory.getFailedMsg(params, "处理失败,原因是转换成功信息为json失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
-		}
+		result = MSUtil.getResponseDataForWihtehole(true, params, farms, cloneFarmId,
+						configuration.getMirMoreOperateUrl()+"/"+cloneFarmId, 
+						MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)+"处理成功", 
+						taskStack, att_list);
 		return result;
 	}
 	
@@ -652,7 +630,8 @@ public class MirFactory {
 	
 	public String queryService(Params p){
 		String result = null;
-		Data data = new Data();
+		
+		ArrayList<com.chinacloud.isv.entity.callbackparams.Component> att_list = new ArrayList<com.chinacloud.isv.entity.callbackparams.Component>();
 		String instanceId = p.getData().getPayload().getInstance().getInstanceId();
 		logger.info("=====================查询事件,实例 ID: "+instanceId+"===============================");
 		logger.info("QUERY　CASE: the instance id---->"+instanceId);
@@ -668,9 +647,8 @@ public class MirFactory {
 		if(tr.getInfo().contains(CaseProvider.STATUS_TIME_OUT)){
 			logger.error("task result id:"+tr.getId()+",farm id:"+tr.getcFarmId()+"task time out");
 		}
-		com.chinacloud.isv.entity.callbackparams.Process process = new com.chinacloud.isv.entity.callbackparams.Process();
+		
 		Map<String,String> headerMap = new HashMap<String,String>();
-		String queryUrl = configuration.getMirBaseUrl()+"/mir/proxy/servers/xListServers/?farmId="+tr.getcFarmId()+"&imageId=&limit=10&page=1&query=&start=0";
 		//login
 		ResultObject robj= loginService.login(null,null);
 		if(!robj.getErrorMessage().equals("") && !robj.isSuccess()){
@@ -680,74 +658,44 @@ public class MirFactory {
 		}
 		headerMap.put("X-Secure-Key", robj.getSecureKey());
 		headerMap.put("X-Requested-Token", robj.getSpecialToken());
-		CloseableHttpResponse qResult = null;
-		try {
-			qResult = MSUtil.httpClientGetUrl(headerMap, queryUrl);
-		} catch (Exception e1) {
-			logger.error("query case,request mir plate failed");
+		//TODO get edit info 
+		String editInfo = mirEditService.getFarmEditInfo(tr.getcFarmId(), robj);
+		if(null == editInfo){
+			logger.error("query case,get edit info failed");
 			result = WhiteholeFactory.getFailedMsg(p,  "处理失败,原因是查询应用堆栈信息请求失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_QUERY);
-			e1.printStackTrace();
 			return result;
 		}
-		String queryR = null;
+		String [] keys ={"farm","roles"};
+		JsonNode jNode = MSUtil.getDirectedValueFromJson(keys, editInfo);
+		MSUtil.getComponentsList(jNode.toString(), att_list);
+		DataExtend data = new DataExtend();
+		ProcessExtend process = new ProcessExtend();
+		data.setSuccess(true);
+		data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_QUERY)+"处理成功");
+		process.setEventId(p.getData().getEventId());
+		process.setInstanceId(tr.getId());
+		process.setStatus(CaseProvider.SUCESS_STATUS);
+		process.setExtensionUrl(configuration.getMirMoreOperateUrl()+"/"+tr.getcFarmId());
+		HashMap<String, Object> metadata = new HashMap<>();
+		metadata.put("system", "Mir");
+		process.setMetadata(metadata);
+		data.setProcess(process);
+		if(null != att_list){
+			HashMap<String, Object> map = new HashMap<>();
+			map.put("farmId", tr.getcFarmId());
+			map.put("componentInfo", att_list);
+			Instance instance = new Instance();
+			instance.setMetadata(map);
+			process.setInstance(instance);
+		}
 		try {
-			queryR = EntityUtils.toString(qResult.getEntity());
-		} catch (Exception e1) {
-			logger.error("convert to entity to string failed\n"+e1.getLocalizedMessage());
-			e1.printStackTrace();
-		} 
-		WhiteholeFactory wf = new WhiteholeFactory();
-		Servers server = null;
-		try {
-			server = wf.getEntity(Servers.class,queryR);
-		} catch (Exception e1) {
-			logger.error("convert String to object failed\n"+e1.getLocalizedMessage());
-			e1.printStackTrace();
-		} 
-		ArrayList<ServerInfo> sList = server.getData();
-		//do analyze
-		int total = Integer.parseInt(server.getTotal());
-		if(total <= 0){
-			result = WhiteholeFactory.getFailedMsg(p, "处理失败，获取虚拟机数量小于等于0",CaseProvider.EVENT_TYPE_SUBSCRIPTION_QUERY);
-		}else{
-			ArrayList<Attribute> att_list = new ArrayList<Attribute>();
-			data.setSuccess(true);
-			data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)+"处理成功");
-			process.setEventId(p.getData().getEventId());
-			process.setStatus("SUCCESS");
-			process.setInstanceId(instanceId);
-			for (ServerInfo serverInfo : sList) {
-				Attribute att = new Attribute();
-				att.setKey("role_name");
-				att.setValue(serverInfo.getRole_name());
-				Attribute att2 = new Attribute();
-				att2.setKey("flavor");
-				att2.setValue(serverInfo.getFlavor());
-				Attribute att3 = new Attribute();
-				att3.setKey("farm_id");
-				att3.setValue(serverInfo.getFarm_id());
-				Attribute att4 = new Attribute();
-				att4.setKey("local_ip");
-				att4.setValue(serverInfo.getLocal_ip());
-				Attribute att5 = new Attribute();
-				att5.setKey("remote_ip");
-				att5.setValue(serverInfo.getRemote_ip());
-				att_list.add(att3);
-				att_list.add(att);
-				att_list.add(att2);
-				att_list.add(att4);
-				att_list.add(att5);
-			}
-			process.setAttribute(att_list);
-			data.setProcess(process);
-			try {
-				result = WhiteholeFactory.getJsonString(data);
-				logger.info("query case,return result:"+result);
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-			}
+			result = WhiteholeFactory.getJsonString(data);
+		} catch (JsonProcessingException e) {
+			logger.error("convert failed info to json failed \n"+e.getLocalizedMessage());
+			return WhiteholeFactory.getFailedMsg(p, "处理失败,原因是转换成功信息为json失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_QUERY);
 		}
 		return result;
+		
 	}
 	
 	public String rebootService(String cFarmId,Params p,TaskStack taskStack,VMQeuryParam vp){

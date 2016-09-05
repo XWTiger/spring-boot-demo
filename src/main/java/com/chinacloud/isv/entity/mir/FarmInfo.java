@@ -26,6 +26,7 @@ public class FarmInfo {
 	private boolean havemongodbrole;
 	private boolean haveperconarole;
 	private boolean havemariadbrole;
+	private boolean havedockerrole;
 	private String status_txt;
 	private ArrayList<?> shortcuts;
 	
@@ -173,6 +174,12 @@ public class FarmInfo {
 	}
 	public void setSuspended_servers(String suspended_servers) {
 		this.suspended_servers = suspended_servers;
+	}
+	public boolean isHavedockerrole() {
+		return havedockerrole;
+	}
+	public void setHavedockerrole(boolean havedockerrole) {
+		this.havedockerrole = havedockerrole;
 	}
 	
 }
