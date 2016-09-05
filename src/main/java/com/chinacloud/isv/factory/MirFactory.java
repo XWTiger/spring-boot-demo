@@ -658,15 +658,17 @@ public class MirFactory {
 		}
 		headerMap.put("X-Secure-Key", robj.getSecureKey());
 		headerMap.put("X-Requested-Token", robj.getSpecialToken());
-		//TODO get edit info 
+		//get edit info 
 		String editInfo = mirEditService.getFarmEditInfo(tr.getcFarmId(), robj);
 		if(null == editInfo){
 			logger.error("query case,get edit info failed");
 			result = WhiteholeFactory.getFailedMsg(p,  "处理失败,原因是查询应用堆栈信息请求失败。", CaseProvider.EVENT_TYPE_SUBSCRIPTION_QUERY);
 			return result;
 		}
-		String [] keys ={"farm","roles"};
+		String [] keys = {"farm","roles"};
+		String [] fkeys = {"farm","farm","name"};
 		JsonNode jNode = MSUtil.getDirectedValueFromJson(keys, editInfo);
+		JsonNode fNode = MSUtil.getDirectedValueFromJson(fkeys, editInfo);
 		MSUtil.getComponentsList(jNode.toString(), att_list);
 		DataExtend data = new DataExtend();
 		ProcessExtend process = new ProcessExtend();
@@ -682,6 +684,7 @@ public class MirFactory {
 		data.setProcess(process);
 		if(null != att_list){
 			HashMap<String, Object> map = new HashMap<>();
+			map.put("farmName", fNode.toString());
 			map.put("farmId", tr.getcFarmId());
 			map.put("componentInfo", att_list);
 			Instance instance = new Instance();
