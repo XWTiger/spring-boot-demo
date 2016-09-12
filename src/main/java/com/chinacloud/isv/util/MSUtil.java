@@ -491,7 +491,7 @@ public class MSUtil {
 		} 
 	}
 	
-	public static String getResponseDataForWihtehole(boolean status,Params params,Farms farms,String farmId,String extendUrl,String message,TaskStack taskStack,ArrayList<com.chinacloud.isv.entity.callbackparams.Component> att_list){
+	public static String getResponseDataForWihtehole(boolean status,Params params,Farms farms,String farmId,String extendUrl,String message,TaskStack taskStack,String envId,ArrayList<com.chinacloud.isv.entity.callbackparams.Component> att_list){
 		DataExtend data = new DataExtend();
 		ProcessExtend process = new ProcessExtend();
 		data.setSuccess(status);
@@ -504,10 +504,11 @@ public class MSUtil {
 		metadata.put("system", "Mir");
 		process.setMetadata(metadata);
 		data.setProcess(process);
+		HashMap<String, Object> map = new HashMap<>();
+		map.put("farmName", farms.getData().get(0).getName());
+		map.put("farmId", farmId);
+		map.put("envId",envId);
 		if(null != att_list){
-			HashMap<String, Object> map = new HashMap<>();
-			map.put("farmName", farms.getData().get(0).getName());
-			map.put("farmId", farmId);
 			map.put("componentInfo", att_list);
 			Instance instance = new Instance();
 			instance.setMetadata(map);

@@ -182,7 +182,7 @@ public class LaunchEvent {
 					logger.error("after call back return result,get resopnse error\n"+e.getLocalizedMessage());
 					e.printStackTrace();
 				}
-				TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS, CaseProvider.HTTP_STATUS_POST, respCall, "0", vp.getCallbackUrl(), result,vp.getDestinationFarmId(),vp.getEventType());
+				TaskResult taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.SUCESS_STATUS, CaseProvider.HTTP_STATUS_POST, respCall, "0", vp.getCallbackUrl(), result,vp.getDestinationFarmId(),vp.getEventType());
 				//delete the row record of task 
 				riskStackDao.deleteTask(vp.getTaskId());
 				taskResultDao.addResult(taskResult);

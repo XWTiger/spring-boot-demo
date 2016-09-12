@@ -241,7 +241,7 @@ public class MirFactory {
 		result = MSUtil.getResponseDataForWihtehole(true, params, farms, cloneFarmId,
 						configuration.getMirMoreOperateUrl()+"/"+cloneFarmId, 
 						MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)+"处理成功", 
-						taskStack, att_list);
+						taskStack,sTemplateEntity.getServiceTemplate().getEnv_id(),att_list);
 		return result;
 	}
 	
