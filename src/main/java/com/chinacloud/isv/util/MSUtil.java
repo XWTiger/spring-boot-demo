@@ -332,6 +332,7 @@ public class MSUtil {
 					}
 					logger.info("ip pool====>"+componentInfo.getComponentIpPool());
 					String realString = replaceValue(buffer,"scaling.min_instances","\""+componentInfo.getUnitInstanceNumber()+"\"");
+					realString = replaceValue(buffer,"scaling.max_instances","\""+componentInfo.getUnitInstanceNumber()+"\"");
 					realString = replaceValue(realString, "openstack.flavor-id", "\""+componentInfo.getUnitFlavorId()+"\"");
 					realString = replaceValue(realString, "openstack.networks", "\"[\\\""+componentInfo.getComponentNet()[0]+"\\\"]\"");
 					realString = replaceValue(realString, "openstack.ip-pool", "\""+componentInfo.getComponentIpPool()+"\"");
