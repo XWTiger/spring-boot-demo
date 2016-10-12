@@ -1,5 +1,6 @@
 package com.chinacloud.isv.component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.entity.VMQeuryParam;
+import com.chinacloud.isv.entity.callbackparams.Attribute;
 import com.chinacloud.isv.entity.callbackparams.Data;
 import com.chinacloud.isv.entity.callbackparams.Process;
 import com.chinacloud.isv.factory.WhiteholeFactory;
@@ -62,11 +64,13 @@ public class RebootEvent {
 		}
 		boolean b = virtualMachineStatusCheck.isAllInOneStatus(vp.getcFarmId(), vp.getxSecurityKey(), vp.getSpecialToken(), CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT+" ", vp.getTaskId(),CaseProvider.VM_STATUS_RUNNING);
 		if(b){
+			ArrayList<Attribute> att_list = new ArrayList<Attribute>();
 			data.setSuccess(true);
 			data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_REBOOT)+"处理成功。");
 			process.setEventId(vp.getEnventId());
 			process.setStatus(CaseProvider.SUCESS_STATUS);
 			process.setInstanceId(vp.getInstanceId());
+			process.setAttribute(att_list);
 			data.setProcess(process);
 			String result = null;
 			try {

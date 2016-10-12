@@ -20,6 +20,7 @@ import com.chinacloud.isv.configuration.Configuration;
 import com.chinacloud.isv.domain.TaskResult;
 import com.chinacloud.isv.entity.ResultObject;
 import com.chinacloud.isv.entity.VMQeuryParam;
+import com.chinacloud.isv.entity.callbackparams.Attribute;
 import com.chinacloud.isv.entity.callbackparams.Data;
 import com.chinacloud.isv.entity.callbackparams.Process;
 import com.chinacloud.isv.entity.mir.ServerInfo;
@@ -112,13 +113,15 @@ public class CancelEvent {
 			String requestR = EntityUtils.toString(response.getEntity());
 			ResultObject ro = new WhiteholeFactory().getEntity(ResultObject.class, requestR);
 			if (!ro.isSuccess()) {
-				logger.error("remove farm failed");
+				logger.error("remove farm failed, farm id :"+vp.getcFarmId());
+				ArrayList<Attribute> att_list = new ArrayList<Attribute>();
 				data.setSuccess(false);
 				data.setErrorCode(CaseProvider.ERROR_CODE);
 				data.setMessage(
 						MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL) + "处理失败,原因是删除应用堆栈失败。");
 				process.setEventId(vp.getEnventId());
 				process.setStatus(CaseProvider.FAILED_STATUS);
+				process.setAttribute(att_list);
 				data.setProcess(process);
 			}
 			response.close();
@@ -129,11 +132,13 @@ public class CancelEvent {
 		// return success result
 		if (null == data.getErrorCode() || data.getErrorCode().equals("")) {
 			logger.info("===========package success info of cancle case==========");
+			ArrayList<Attribute> att_list = new ArrayList<Attribute>();
 			data.setSuccess(true);
 			data.setMessage(MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL) + "处理成功。");
 			process.setEventId(vp.getEnventId());
 			process.setStatus("SUCCESS");
 			process.setInstanceId(vp.getInstanceId());
+			process.setAttribute(att_list);
 			data.setProcess(process);
 		}
 
@@ -168,6 +173,7 @@ public class CancelEvent {
 			taskResult = MSUtil.getResultInstance(vp.getTaskId(), CaseProvider.FAILED_STATUS,
 					CaseProvider.HTTP_STATUS_POST, "call back return result failed." + e.getLocalizedMessage(), "0",
 					vp.getCallbackUrl(), "", vp.getDestinationFarmId(),vp.getEventType());
+			logger.error("cancle case have a excption,errorMsg:"+e.getLocalizedMessage());
 			// delete the row record of task
 			riskStackDao.deleteTask(vp.getTaskId());
 			taskResultDao.addResult(taskResult);

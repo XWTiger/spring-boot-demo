@@ -125,6 +125,7 @@ public class TaskConsumeService {
 								taskResult = MSUtil.getTaskResult(0, taskStack, Response, comebackResult,"-1",CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL,null,taskStack.getEventType());
 								riskStackDao.deleteTask(taskStack.getId());
 								taskResultDao.addResult(taskResult);
+								break;
 							}
 							result = mirFactory.cancleService(params,tr.getcFarmId(),vmQeuryParam,taskStack);
 							logger.info("cancle case, call back params---->"+result);

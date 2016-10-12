@@ -7,7 +7,7 @@ public class ProcessExtend {
 	private String eventId;
 	private String status;
 	private String instanceId;
-	private String extensionUrl;
+	private String extensionUrl = "";
 	private Instance instance;
 	private HashMap<String, Object> metadata;
 	public String getEventId() {

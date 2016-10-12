@@ -7,7 +7,7 @@ public class Process {
 	private String eventId;
 	private String status;
 	private String instanceId;
-	private String extensionUrl;
+	private String extensionUrl = "";
 	private ArrayList<Attribute> attribute;
 	
 	public String getEventId() {

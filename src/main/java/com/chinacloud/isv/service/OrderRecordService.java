@@ -138,6 +138,7 @@ public class OrderRecordService {
 		for (String id : tenants) {
 			if(id.equals(tenantId)){
 				flag = 1;
+				break;
 			}
 		}
 		if(null == flag || 0 >= flag){

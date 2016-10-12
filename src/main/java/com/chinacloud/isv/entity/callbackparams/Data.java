@@ -3,7 +3,7 @@ package com.chinacloud.isv.entity.callbackparams;
 public class Data {
 
 	private boolean success;
-	private String errorCode;
+	private String errorCode = "";
 	private String message;
 	private Process process;
 	

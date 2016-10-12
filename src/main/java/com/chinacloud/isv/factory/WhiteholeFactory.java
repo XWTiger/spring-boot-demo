@@ -1,6 +1,7 @@
 package com.chinacloud.isv.factory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.chinacloud.isv.entity.Params;
+import com.chinacloud.isv.entity.callbackparams.Attribute;
 import com.chinacloud.isv.entity.callbackparams.Data;
 import com.chinacloud.isv.entity.callbackparams.Process;
 import com.chinacloud.isv.util.CaseProvider;
@@ -95,6 +97,7 @@ public class WhiteholeFactory {
 	public static String getFailedMsg(Params p,String msgTail,String caseType){
 		Data data = new Data();
 		Process process = new Process();
+		ArrayList<Attribute> att_list = new ArrayList<Attribute>();
 		String result = null;
 		data.setSuccess(false);
 		data.setErrorCode(CaseProvider.ERROR_CODE);
@@ -105,7 +108,9 @@ public class WhiteholeFactory {
 		if(!caseType.equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER))
 		process.setInstanceId(p.getData().getPayload().getInstance().getInstanceId());
 		process.setStatus(CaseProvider.FAILED_STATUS);
+		process.setAttribute(att_list);
 		data.setProcess(process);
+		
 		try {
 			result = WhiteholeFactory.getJsonString(data);
 		} catch (JsonProcessingException e) {
