@@ -17,6 +17,7 @@ import com.chinacloud.isv.util.CaseProvider;
 import com.chinacloud.isv.util.MSUtil;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -46,6 +47,7 @@ public class WhiteholeFactory {
 				
 			}
 			ObjectMapper om = new ObjectMapper();
+			om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 			return (T) om.readValue(params, obj);
 		}
 		
@@ -183,5 +185,11 @@ public class WhiteholeFactory {
 			e.printStackTrace();
 		}
 		return response;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public  <T> T Test(String json,Class<?> obj){
+		
+		 return (T) com.alibaba.fastjson.JSON.parseObject(json, obj);
 	}
 }

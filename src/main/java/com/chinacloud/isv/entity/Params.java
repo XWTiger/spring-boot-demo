@@ -1,5 +1,8 @@
 package com.chinacloud.isv.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown=true)
 public class Params {
 	
 	private int status;

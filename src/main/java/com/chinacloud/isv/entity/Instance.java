@@ -3,7 +3,7 @@ package com.chinacloud.isv.entity;
 public class Instance {
 
 	private String instanceId;
-
+	
 	public String getInstanceId() {
 		return instanceId;
 	}
@@ -11,6 +11,7 @@ public class Instance {
 	public void setInstanceId(String instanceId) {
 		this.instanceId = instanceId;
 	}
-	
 
+	
+	
 }

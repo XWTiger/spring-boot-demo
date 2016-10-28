@@ -3,6 +3,7 @@ package com.chinacloud.isv.controller;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,8 +14,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.chinacloud.isv.component.VtrualMachineQuery;
+import com.chinacloud.isv.entity.Params;
 import com.chinacloud.isv.entity.VMQeuryParam;
-import com.chinacloud.isv.entity.mirtemplate.ServiceTemplate;
 import com.chinacloud.isv.factory.WhiteholeFactory;
 import com.chinacloud.isv.service.ConfigurateFarmService;
 import com.chinacloud.isv.service.LoginService;
@@ -41,6 +42,9 @@ public class TestController {
 	
 	String json2 = "{\"success\":true,\"total\":\"3\",\"data\":[{\"clientid\":\"1\",\"id\":\"922\",\"name\":\"mir-pack-deploy-test (clone #2)\",\"status\":\"0\",\"dtadded\":\"Jun 1, 2016 13:34:09\",\"created_by_id\":\"99\",\"created_by_email\":\"xiaweihu@chinacloud.com.cn\",\"running_servers\":\"0\",\"suspended_servers\":\"0\",\"non_running_servers\":\"0\",\"roles\":\"2\",\"zones\":\"0\",\"alerts\":\"0\",\"lock\":null,\"havemysqlrole\":false,\"havemysql2role\":false,\"havepgrole\":false,\"haveredisrole\":false,\"haverabbitmqrole\":false,\"havemongodbrole\":false,\"haveperconarole\":false,\"havemariadbrole\":false,\"status_txt\":\"Terminated\",\"shortcuts\":[]}]}";
 	
+	String Json3 = "{\"status\": 200,\"data\": {\"eventId\":\"e956b3b4-11e3-4d54-9e13-5057bd0ad9e5\",\"creator\": {\"firstName\": null,\"lastName\": null,\"id\": \"bfc27112-fedf-413c-9946-4a45319c1a92\",\"email\": \"shengting-admin@test.com\"},\"callBackUrl\": \"http://172.16.80.90:8080/business/cancel/tasks/callback\",\"marketplace\": {\"baseUrl\": \"http://www.baidu.com\",\"partner\": \"whitehole\"},\"payload\": {\"Variables\": {\"metadata\":{\"envId\":\"1\",\"componentInfo\":[{\"componentName\":\"\\\"tomcat\\\"\",\"componentType\":\"\\\"base\\\"\",\"componentInstanceNumber\":\"\\\"1\\\"\",\"componentFarmRoleId\":\"\\\"15\\\"\"}],\"farmId\":\"15\",\"farmName\":\"tomcat-template (clone #3)\"},\"type\":\"Mir\"},\"instance\": {\"instanceId\":\"dfe30815-bd27-4b7d-90b9-432743f10c15\"},\"tenant\": {\"name\": \"ST_5100\",\"id\": \"51000000-0000-0000-0000-000000000000\"}},\"type\": \"SUBSCRIPTION_CANCEL\"}}";
+	
+	String json4 = "{\"metadata\":{\"envId\":\"1\",\"componentInfo\":[{\"componentName\":\"\\\"tomcat\\\"\",\"componentType\":\"\\\"base\\\"\",\"componentInstanceNumber\":\"\\\"1\\\"\",\"componentFarmRoleId\":\"\\\"15\\\"\"}],\"farmId\":\"15\",\"farmName\":\"tomcat-template (clone #3)\"},\"type\":\"Mir\"},\"instanceId\":\"dfe30815-bd27-4b7d-90b9-432743f10c15\"}";
 	
 	@RequestMapping(value="/callback",method=RequestMethod.POST)
 	@ResponseBody
@@ -78,21 +82,30 @@ public class TestController {
 	
 	@RequestMapping("/test_exception")
 	public void exceptionTest(){
-		String teString="{\"serviceTemplate\": {\"name\": \"2333\",\"description\": \"\",\"type\": \"scalr\",\"id\": \"131\",\"service_template_id\": \"8a7b6634-d2af-4864-a4ec-f5edad45df4c\",\"template_status\": 1,\"create_time\": \"2016-08-18 01:45:50.0\",\"relevant_farm_name\": \"2333\",\"creater_name\": \"mirowner@chinacloud.com.cn\",\"env_id\": \"1\",\"service_template_schema_map\": {\"serviceTemplateName\": \"2333\",\"componentInfo\": [{\"componentName\": \"redhat67-kvm-mysql51-15disk-noauto\",\"componentNet\": [\"1b6cd9ef-9753-4453-b7b1-399e6632c636\"],\"unitFlavorId\": \"vcpus_1-ram_1-disk_15\",\"componentIpPool\": \"\",\"unitInstanceNumber\": \"1\"}],\"farmId\": \"131\",\"serviceTemplateId\": \"8a7b6634-d2af-4864-a4ec-f5edad45df4c\"}}}";
+		//String teString="{\"serviceTemplate\": {\"name\": \"2333\",\"description\": \"\",\"type\": \"scalr\",\"id\": \"131\",\"service_template_id\": \"8a7b6634-d2af-4864-a4ec-f5edad45df4c\",\"template_status\": 1,\"create_time\": \"2016-08-18 01:45:50.0\",\"relevant_farm_name\": \"2333\",\"creater_name\": \"mirowner@chinacloud.com.cn\",\"env_id\": \"1\",\"service_template_schema_map\": {\"serviceTemplateName\": \"2333\",\"componentInfo\": [{\"componentName\": \"redhat67-kvm-mysql51-15disk-noauto\",\"componentNet\": [\"1b6cd9ef-9753-4453-b7b1-399e6632c636\"],\"unitFlavorId\": \"vcpus_1-ram_1-disk_15\",\"componentIpPool\": \"\",\"unitInstanceNumber\": \"1\"}],\"farmId\": \"131\",\"serviceTemplateId\": \"8a7b6634-d2af-4864-a4ec-f5edad45df4c\"}}}";
 		WhiteholeFactory wFactory = new WhiteholeFactory();
-		try {
-			ServiceTemplate mirTemplate = wFactory.getEntity(ServiceTemplate.class, teString);
-			logger.debug("===================content:============================="+mirTemplate.getServiceTemplate().getCreate_time());
-		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
+			Params mirTemplate;
+			try {
+				mirTemplate = wFactory.getEntity( Params.class,Json3);
+				logger.debug("===================content:============================="+mirTemplate.getData().getPayload().getInstance().getInstanceId());
+				ObjectMapper objectMapper = new ObjectMapper();
+				JsonNode jsonNode = objectMapper.readTree(json4);
+				HashMap<String, Object> map = new HashMap<String, Object>();
+				map.put("Variables", jsonNode);
+				logger.debug(objectMapper.writeValueAsString(map));
+			} catch (JsonParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+	
 		
 		/*ResultObject ro = loginService.login(null, null);
 		MirTemplate mTemplate = new MirTemplate();
