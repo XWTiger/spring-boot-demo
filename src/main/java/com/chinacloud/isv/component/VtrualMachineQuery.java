@@ -52,6 +52,9 @@ public class VtrualMachineQuery extends Thread {
 	@Override
 	public void run() {
 		super.run();
+		Runtime rt = Runtime.getRuntime();
+		logger.info("jvm free memery ====>"+rt.freeMemory());
+		long mem = rt.freeMemory();
 		try {
 			currentThread();
 			Thread.sleep(5000);
@@ -60,6 +63,12 @@ public class VtrualMachineQuery extends Thread {
 		}
 		while (true) {
 			try {
+				
+				
+				
+				if(mem/rt.freeMemory() < 10){
+					System.gc();
+				}
 				ArrayList<VMQeuryParam> task_list = getQueryTaskLine();
 				if (task_list.size() > 0) {
 					logger.debug("=========begin a task query==============");
@@ -67,7 +76,7 @@ public class VtrualMachineQuery extends Thread {
 				} else {
 					try {
 						currentThread();
-						Thread.sleep(1000);
+						Thread.sleep(5000);
 					} catch (InterruptedException e1) {
 						e1.printStackTrace();
 					}

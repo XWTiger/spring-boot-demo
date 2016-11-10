@@ -123,7 +123,7 @@ public class MirRequestService {
 				riskStackDao.addTask(riskStack);
 				// return result json
 				System.out.println("envent type---------"+params.getData().getType()+"--------");
-				message = WhiteholeFactory.getAsynReturnJson(params.getData().getEventId(), params.getData().getType());
+				message = WhiteholeFactory.getAsynReturnJson(params.getData().getEventId(), params.getData().getType(),uuid);
 				
 			}
 			//distinguish case

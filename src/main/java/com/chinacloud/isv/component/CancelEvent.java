@@ -121,6 +121,7 @@ public class CancelEvent {
 						MSUtil.getChineseName(CaseProvider.EVENT_TYPE_SUBSCRIPTION_CANCEL) + "处理失败,原因是删除应用堆栈失败。");
 				process.setEventId(vp.getEnventId());
 				process.setStatus(CaseProvider.FAILED_STATUS);
+				process.setInstanceId(vp.getInstanceId());
 				process.setAttribute(att_list);
 				data.setProcess(process);
 			}
@@ -144,7 +145,7 @@ public class CancelEvent {
 
 		try {
 			result = WhiteholeFactory.getJsonString(data);
-			logger.debug("when cancle case,callback return result:" + result);
+			logger.info("when cancle case,callback return result:" + result);
 		} catch (JsonProcessingException e) {
 			logger.error("convert to json failed\n" + e.getLocalizedMessage());
 			e.printStackTrace();
@@ -176,7 +177,10 @@ public class CancelEvent {
 			logger.error("cancle case have a excption,errorMsg:"+e.getLocalizedMessage());
 			// delete the row record of task
 			riskStackDao.deleteTask(vp.getTaskId());
+			taskResultDao.deleteResultById(vp.getInstanceId());
+			orderRecordDao.deleteByCloneFarmId(vp.getcFarmId());
 			taskResultDao.addResult(taskResult);
+			vtrualMachineQuery.removeQueryTask(vp);
 			e.printStackTrace();
 		}
 	}

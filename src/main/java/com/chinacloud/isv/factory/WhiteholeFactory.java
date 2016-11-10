@@ -73,13 +73,16 @@ public class WhiteholeFactory {
 	 * @return
 	 * @throws JsonProcessingException
 	 */
-	public static String getAsynReturnJson(String eventId,String caseName) throws JsonProcessingException{
+	public static String getAsynReturnJson(String eventId,String caseName,String instanceId) throws JsonProcessingException{
 		String jsonObj = null;
+		ArrayList<Attribute> arrayList = new ArrayList<>();
 		Data data = new Data();
 		data.setSuccess(true);
 		com.chinacloud.isv.entity.callbackparams.Process process = new com.chinacloud.isv.entity.callbackparams.Process();
 		process.setEventId(eventId);
 		process.setStatus(CaseProvider.EVENT_TYPE_WAIT_FOR_RESULT);
+		process.setInstanceId(instanceId);
+		process.setAttribute(arrayList);
 		String name = MSUtil.getChineseName(caseName);
 		if(null == name){
 			logger.warn("the case name "+caseName+" don't exist");
@@ -188,7 +191,7 @@ public class WhiteholeFactory {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public  <T> T Test(String json,Class<?> obj){
+	public  <T> T getEntittyByalibaba(String json,Class<?> obj){
 		
 		 return (T) com.alibaba.fastjson.JSON.parseObject(json, obj);
 	}
