@@ -66,7 +66,8 @@ public class VtrualMachineQuery extends Thread {
 				
 				
 				
-				if(mem/rt.freeMemory() < 10){
+				if(mem/rt.freeMemory() < configuration.getGcPersent()){
+					logger.warn("the jvm free memery: "+rt.freeMemory());
 					System.gc();
 				}
 				ArrayList<VMQeuryParam> task_list = getQueryTaskLine();

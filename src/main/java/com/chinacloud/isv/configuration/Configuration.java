@@ -23,7 +23,17 @@ public class Configuration {
 	private String mirMoreOperateUrl;
 	@Value("${mir.baseUrl}")
 	private String mirBaseUrl;
+	@Value("${service.gcPercent}")
+	private int gcPersent;
 	
+	public int getGcPersent() {
+		return gcPersent;
+	}
+
+	public void setGcPersent(int gcPersent) {
+		this.gcPersent = gcPersent;
+	}
+
 	public String getUserName() {
 		return userName;
 	}
