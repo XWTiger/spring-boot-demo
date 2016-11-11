@@ -66,7 +66,7 @@ public class VtrualMachineQuery extends Thread {
 				
 				
 				
-				if(mem/rt.freeMemory() < configuration.getGcPersent()){
+				if(mem/rt.freeMemory() < configuration.getGcPercent()){
 					logger.warn("the jvm free memery: "+rt.freeMemory());
 					System.gc();
 				}
