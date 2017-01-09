@@ -141,7 +141,8 @@ public class MirFactory {
 			chr = MSUtil.httpClientPostUrl(headerMap, farmCloneUrl, params_list);
 		} catch (Exception e) {
 			logger.error("order case,clone farm stack failed, we will unlock the task. msg:"+e.getLocalizedMessage());
-			unlockService.unlockMission(taskStack);
+			/*unlockService.unlockMission(taskStack);*/
+			return WhiteholeFactory.getFailedMsg(params, "处理失败，调用mir接口异常", CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER);
 		}
 		String CloneResult = null;
 		try {

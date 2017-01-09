@@ -110,8 +110,12 @@ public class WhiteholeFactory {
 		data.setMessage(MSUtil.getChineseName(caseType)+msgTail);
 		process.setEventId(p.getData().getEventId());
 		logger.debug("the case===>"+caseType);
-		if(!caseType.equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER))
-		process.setInstanceId(p.getData().getPayload().getInstance().getInstanceId());
+		if(!caseType.equals(CaseProvider.EVENT_TYPE_SUBSCRIPTION_ORDER)){
+			process.setInstanceId(p.getData().getPayload().getInstance().getInstanceId());
+		}
+		else {
+			process.setInstanceId("");
+		}
 		process.setStatus(CaseProvider.FAILED_STATUS);
 		process.setAttribute(att_list);
 		data.setProcess(process);
