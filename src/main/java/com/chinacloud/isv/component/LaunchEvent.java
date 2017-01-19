@@ -95,7 +95,7 @@ public class LaunchEvent {
 					for (ServerInfo serverInfo : sList) {
 						Attribute att = new Attribute();
 						att.setKey("role_name");
-						att.setValue(serverInfo.getRole_name());
+						att.setValue(serverInfo.getRole_alias());
 						Attribute att2 = new Attribute();
 						att2.setKey("flavor");
 						att2.setValue(serverInfo.getFlavor());
